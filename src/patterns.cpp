@@ -40,6 +40,50 @@ void PatternManager::rainbowChase(PinConfig* pin_configs, uint16_t* strip_length
     }
 }
 
+void PatternManager::whiteChase(PinConfig* pin_configs, uint16_t* strip_lengths, uint8_t num_pins, uint32_t time_ms) {
+    clearAllLEDs(pin_configs, num_pins);
+    
+    const uint16_t chase_length = 10;
+    const uint16_t chase_speed = 40;
+    
+    uint16_t total_leds = getTotalLEDCount(pin_configs, strip_lengths, num_pins);
+    
+    uint16_t chase_position = (time_ms / chase_speed) % total_leds;
+    
+    uint16_t global_led_index = 0;
+    uint8_t strip_index = 0;
+    
+    for (int pin = 0; pin < num_pins; pin++) {
+        uint16_t led_position = 0;
+        
+        for (int strip = 0; strip < pin_configs[pin].num_strips; strip++) {
+            uint16_t strip_length = strip_lengths[strip_index];
+            
+            for (int led = 0; led < strip_length; led++) {
+                bool in_chase = false;
+                
+                for (int i = 0; i < chase_length; i++) {
+                    uint16_t chase_led = (chase_position + i) % total_leds;
+                    if (global_led_index == chase_led) {
+                        in_chase = true;
+                        break;
+                    }
+                }
+                
+                if (in_chase) {
+                    pin_configs[pin].led_array[led_position] = CRGB::White;
+                } else {
+                    pin_configs[pin].led_array[led_position] = CRGB::Black;
+                }
+                
+                led_position++;
+                global_led_index++;
+            }
+            strip_index++;
+        }
+    }
+}
+
 void PatternManager::clearAllLEDs(PinConfig* pin_configs, uint8_t num_pins) {
     for (int pin = 0; pin < num_pins; pin++) {
         for (int i = 0; i < pin_configs[pin].total_leds; i++) {

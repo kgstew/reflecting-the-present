@@ -77,7 +77,14 @@ void loop()
     static uint32_t start_time = millis();
     uint32_t current_time = millis() - start_time;
     
-    PatternManager::rainbowChase(pin_configs, strip_lengths, NUM_PINS, current_time);
+    // Switch between patterns every 10 seconds
+    uint8_t pattern = (current_time / 10000) % 2;
+    
+    if (pattern == 0) {
+        PatternManager::whiteChase(pin_configs, strip_lengths, NUM_PINS, current_time);
+    } else {
+        PatternManager::rainbowChase(pin_configs, strip_lengths, NUM_PINS, current_time);
+    }
     
     FastLED.show();
     delay(10);

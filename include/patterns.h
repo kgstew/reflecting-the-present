@@ -15,6 +15,7 @@ struct PinConfig {
 class PatternManager {
 public:
     static void rainbowChase(PinConfig* pin_configs, uint16_t* strip_lengths, uint8_t num_pins, uint32_t time_ms);
+    static void whiteChase(PinConfig* pin_configs, uint16_t* strip_lengths, uint8_t num_pins, uint32_t time_ms);
     static void clearAllLEDs(PinConfig* pin_configs, uint8_t num_pins);
     
 private:
