@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <FastLED.h>
+#include "patterns.h"
 
 #define BRIGHTNESS 255
 #define LED_TYPE WS2812B
@@ -13,13 +14,6 @@
 #define PIN5 22
 #define PIN6 23
 
-struct PinConfig {
-    uint8_t pin;
-    uint8_t num_strips;
-    uint16_t leds_per_strip;
-    uint16_t total_leds;
-    CRGB* led_array;
-};
 
 uint16_t strip_lengths[] = {122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122};
 
@@ -80,35 +74,11 @@ void setup()
 
 void loop()
 {
-    static uint8_t hue = 0;
-    uint8_t global_strip_index = 0;
+    static uint32_t start_time = millis();
+    uint32_t current_time = millis() - start_time;
     
-    for (int pin = 0; pin < NUM_PINS; pin++) {
-        uint8_t pinOffset = pin * 40;
-        uint16_t led_position = 0;
-        
-        for (int strip = 0; strip < pin_configs[pin].num_strips; strip++) {
-            uint16_t strip_length = strip_lengths[global_strip_index];
-            uint8_t stripOffset = strip * 60;
-            
-            if (led_position + strip_length > pin_configs[pin].total_leds) {
-                Serial.printf("ERROR: Pin %d would overflow! led_position=%d, strip_length=%d, total_leds=%d\n", 
-                             pin, led_position, strip_length, pin_configs[pin].total_leds);
-                break;
-            }
-            
-            for (int led = 0; led < strip_length; led++) {
-                pin_configs[pin].led_array[led_position] = CHSV(
-                    hue + pinOffset + stripOffset + (led * 2), 
-                    255, 
-                    255
-                );
-                led_position++;
-            }
-            global_strip_index++;
-        }
-    }
-
+    PatternManager::rainbowChase(pin_configs, strip_lengths, NUM_PINS, current_time);
+    
     FastLED.show();
-    EVERY_N_MILLISECONDS(20) { hue++; }
+    delay(10);
 }
