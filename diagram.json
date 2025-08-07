@@ -42,70 +42,70 @@
       "type": "wokwi-neopixel-canvas",
       "id": "pin2_strip2",
       "top": 0,
-      "left": 620,
+      "left": 640,
       "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
     },
     {
       "type": "wokwi-neopixel-canvas",
       "id": "pin2_strip3",
       "top": 0,
-      "left": 640,
+      "left": 680,
       "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
     },
     {
       "type": "wokwi-neopixel-canvas",
       "id": "pin2_strip4",
       "top": 0,
-      "left": 660,
+      "left": 720,
       "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
     },
     {
       "type": "wokwi-neopixel-canvas",
       "id": "pin3_strip1",
       "top": 0,
-      "left": 680,
+      "left": 760,
       "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
     },
     {
       "type": "wokwi-neopixel-canvas",
       "id": "pin3_strip2",
       "top": 0,
-      "left": 700,
+      "left": 800,
       "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
     },
     {
       "type": "wokwi-neopixel-canvas",
       "id": "pin3_strip3",
       "top": 0,
-      "left": 720,
+      "left": 840,
       "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
     },
     {
       "type": "wokwi-neopixel-canvas",
       "id": "pin3_strip4",
       "top": 0,
-      "left": 740,
+      "left": 880,
       "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
     },
     {
       "type": "wokwi-neopixel-canvas",
       "id": "pin4_strip1",
       "top": 0,
-      "left": 940,
+      "left": 1080,
       "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
     },
     {
       "type": "wokwi-neopixel-canvas",
       "id": "pin4_strip2",
       "top": 0,
-      "left": 1140,
+      "left": 1280,
       "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
     },
     {
       "type": "wokwi-neopixel-canvas",
       "id": "pin4_strip3",
       "top": 0,
-      "left": 1340,
+      "left": 1480,
       "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
     },
     {
@@ -118,50 +118,50 @@
     {
       "type": "wokwi-neopixel-canvas",
       "id": "pin5_strip2",
-      "top": -220,
-      "left": 0,
-      "attrs": { "rows": "1", "cols": "122", "maxbrightness": "5" }
-    },
-    {
-      "type": "wokwi-neopixel-canvas",
-      "id": "pin5_strip3",
       "top": -240,
       "left": 0,
       "attrs": { "rows": "1", "cols": "122", "maxbrightness": "5" }
     },
     {
       "type": "wokwi-neopixel-canvas",
-      "id": "pin5_strip4",
-      "top": -260,
-      "left": 0,
-      "attrs": { "rows": "1", "cols": "122", "maxbrightness": "5" }
-    },
-    {
-      "type": "wokwi-neopixel-canvas",
-      "id": "pin6_strip1",
+      "id": "pin5_strip3",
       "top": -280,
       "left": 0,
       "attrs": { "rows": "1", "cols": "122", "maxbrightness": "5" }
     },
     {
       "type": "wokwi-neopixel-canvas",
-      "id": "pin6_strip2",
-      "top": -300,
-      "left": 0,
-      "attrs": { "rows": "1", "cols": "122", "maxbrightness": "5" }
-    },
-    {
-      "type": "wokwi-neopixel-canvas",
-      "id": "pin6_strip3",
+      "id": "pin5_strip4",
       "top": -320,
       "left": 0,
       "attrs": { "rows": "1", "cols": "122", "maxbrightness": "5" }
     },
     {
       "type": "wokwi-neopixel-canvas",
+      "id": "pin6_strip1",
+      "top": -360,
+      "left": 0,
+      "attrs": { "rows": "1", "cols": "122", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin6_strip2",
+      "top": -400,
+      "left": 0,
+      "attrs": { "rows": "1", "cols": "122", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin6_strip3",
+      "top": -440,
+      "left": 0,
+      "attrs": { "rows": "1", "cols": "122", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
       "id": "pin6_strip4",
-      "top": -339.8,
-      "left": -3.5,
+      "top": -480,
+      "left": 0,
       "attrs": { "rows": "1", "cols": "122", "maxbrightness": "5" }
     }
   ],
