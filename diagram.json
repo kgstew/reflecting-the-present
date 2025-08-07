@@ -1,0 +1,237 @@
+{
+  "version": 1,
+  "author": "Uri Shaked",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-devkit-v1",
+      "id": "esp",
+      "top": 0,
+      "left": -100,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin1_strip1",
+      "top": 0,
+      "left": 0,
+      "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin1_strip2",
+      "top": 0,
+      "left": 200,
+      "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin1_strip3",
+      "top": 0,
+      "left": 400,
+      "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin2_strip1",
+      "top": 0,
+      "left": 600,
+      "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin2_strip2",
+      "top": 0,
+      "left": 620,
+      "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin2_strip3",
+      "top": 0,
+      "left": 640,
+      "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin2_strip4",
+      "top": 0,
+      "left": 660,
+      "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin3_strip1",
+      "top": 0,
+      "left": 680,
+      "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin3_strip2",
+      "top": 0,
+      "left": 700,
+      "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin3_strip3",
+      "top": 0,
+      "left": 720,
+      "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin3_strip4",
+      "top": 0,
+      "left": 740,
+      "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin4_strip1",
+      "top": 0,
+      "left": 940,
+      "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin4_strip2",
+      "top": 0,
+      "left": 1140,
+      "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin4_strip3",
+      "top": 0,
+      "left": 1340,
+      "attrs": { "rows": "122", "cols": "1", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin5_strip1",
+      "top": -200,
+      "left": 0,
+      "attrs": { "rows": "1", "cols": "122", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin5_strip2",
+      "top": -220,
+      "left": 0,
+      "attrs": { "rows": "1", "cols": "122", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin5_strip3",
+      "top": -240,
+      "left": 0,
+      "attrs": { "rows": "1", "cols": "122", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin5_strip4",
+      "top": -260,
+      "left": 0,
+      "attrs": { "rows": "1", "cols": "122", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin6_strip1",
+      "top": -280,
+      "left": 0,
+      "attrs": { "rows": "1", "cols": "122", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin6_strip2",
+      "top": -300,
+      "left": 0,
+      "attrs": { "rows": "1", "cols": "122", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin6_strip3",
+      "top": -320,
+      "left": 0,
+      "attrs": { "rows": "1", "cols": "122", "maxbrightness": "5" }
+    },
+    {
+      "type": "wokwi-neopixel-canvas",
+      "id": "pin6_strip4",
+      "top": -339.8,
+      "left": -3.5,
+      "attrs": { "rows": "1", "cols": "122", "maxbrightness": "5" }
+    }
+  ],
+  "connections": [
+    ["esp:D5", "pin1_strip1:DIN", "green", ["*"]],
+    ["pin1_strip1:DOUT", "pin1_strip2:DIN", "green", ["*"]],
+    ["pin1_strip2:DOUT", "pin1_strip3:DIN", "green", ["*"]],
+    ["esp:D18", "pin2_strip1:DIN", "blue", ["*"]],
+    ["pin2_strip1:DOUT", "pin2_strip2:DIN", "blue", ["*"]],
+    ["pin2_strip2:DOUT", "pin2_strip3:DIN", "blue", ["*"]],
+    ["pin2_strip3:DOUT", "pin2_strip4:DIN", "blue", ["*"]],
+    ["esp:D19", "pin3_strip1:DIN", "yellow", ["*"]],
+    ["pin3_strip1:DOUT", "pin3_strip2:DIN", "yellow", ["*"]],
+    ["pin3_strip2:DOUT", "pin3_strip3:DIN", "yellow", ["*"]],
+    ["pin3_strip3:DOUT", "pin3_strip4:DIN", "yellow", ["*"]],
+    ["esp:D21", "pin4_strip1:DIN", "orange", ["*"]],
+    ["pin4_strip1:DOUT", "pin4_strip2:DIN", "orange", ["*"]],
+    ["pin4_strip2:DOUT", "pin4_strip3:DIN", "orange", ["*"]],
+    ["esp:D22", "pin5_strip1:DIN", "purple", ["*"]],
+    ["pin5_strip1:DOUT", "pin5_strip2:DIN", "purple", ["*"]],
+    ["pin5_strip2:DOUT", "pin5_strip3:DIN", "purple", ["*"]],
+    ["pin5_strip3:DOUT", "pin5_strip4:DIN", "purple", ["*"]],
+    ["esp:D23", "pin6_strip1:DIN", "brown", ["*"]],
+    ["pin6_strip1:DOUT", "pin6_strip2:DIN", "brown", ["*"]],
+    ["pin6_strip2:DOUT", "pin6_strip3:DIN", "brown", ["*"]],
+    ["pin6_strip3:DOUT", "pin6_strip4:DIN", "brown", ["*"]],
+    ["esp:VIN", "pin1_strip1:VDD", "red", ["*"]],
+    ["esp:VIN", "pin1_strip2:VDD", "red", ["*"]],
+    ["esp:VIN", "pin1_strip3:VDD", "red", ["*"]],
+    ["esp:VIN", "pin2_strip1:VDD", "red", ["*"]],
+    ["esp:VIN", "pin2_strip2:VDD", "red", ["*"]],
+    ["esp:VIN", "pin2_strip3:VDD", "red", ["*"]],
+    ["esp:VIN", "pin2_strip4:VDD", "red", ["*"]],
+    ["esp:VIN", "pin3_strip1:VDD", "red", ["*"]],
+    ["esp:VIN", "pin3_strip2:VDD", "red", ["*"]],
+    ["esp:VIN", "pin3_strip3:VDD", "red", ["*"]],
+    ["esp:VIN", "pin3_strip4:VDD", "red", ["*"]],
+    ["esp:VIN", "pin4_strip1:VDD", "red", ["*"]],
+    ["esp:VIN", "pin4_strip2:VDD", "red", ["*"]],
+    ["esp:VIN", "pin4_strip3:VDD", "red", ["*"]],
+    ["esp:VIN", "pin5_strip1:VDD", "red", ["*"]],
+    ["esp:VIN", "pin5_strip2:VDD", "red", ["*"]],
+    ["esp:VIN", "pin5_strip3:VDD", "red", ["*"]],
+    ["esp:VIN", "pin5_strip4:VDD", "red", ["*"]],
+    ["esp:VIN", "pin6_strip1:VDD", "red", ["*"]],
+    ["esp:VIN", "pin6_strip2:VDD", "red", ["*"]],
+    ["esp:VIN", "pin6_strip3:VDD", "red", ["*"]],
+    ["esp:VIN", "pin6_strip4:VDD", "red", ["*"]],
+    ["esp:GND.1", "pin1_strip1:VSS", "black", ["*"]],
+    ["esp:GND.1", "pin1_strip2:VSS", "black", ["*"]],
+    ["esp:GND.1", "pin1_strip3:VSS", "black", ["*"]],
+    ["esp:GND.1", "pin2_strip1:VSS", "black", ["*"]],
+    ["esp:GND.1", "pin2_strip2:VSS", "black", ["*"]],
+    ["esp:GND.1", "pin2_strip3:VSS", "black", ["*"]],
+    ["esp:GND.1", "pin2_strip4:VSS", "black", ["*"]],
+    ["esp:GND.1", "pin3_strip1:VSS", "black", ["*"]],
+    ["esp:GND.1", "pin3_strip2:VSS", "black", ["*"]],
+    ["esp:GND.1", "pin3_strip3:VSS", "black", ["*"]],
+    ["esp:GND.1", "pin3_strip4:VSS", "black", ["*"]],
+    ["esp:GND.1", "pin4_strip1:VSS", "black", ["*"]],
+    ["esp:GND.1", "pin4_strip2:VSS", "black", ["*"]],
+    ["esp:GND.1", "pin4_strip3:VSS", "black", ["*"]],
+    ["esp:GND.1", "pin5_strip1:VSS", "black", ["*"]],
+    ["esp:GND.1", "pin5_strip2:VSS", "black", ["*"]],
+    ["esp:GND.1", "pin5_strip3:VSS", "black", ["*"]],
+    ["esp:GND.1", "pin5_strip4:VSS", "black", ["*"]],
+    ["esp:GND.1", "pin6_strip1:VSS", "black", ["*"]],
+    ["esp:GND.1", "pin6_strip2:VSS", "black", ["*"]],
+    ["esp:GND.1", "pin6_strip3:VSS", "black", ["*"]],
+    ["esp:GND.1", "pin6_strip4:VSS", "black", ["*"]]
+  ],
+  "dependencies": {}
+}
