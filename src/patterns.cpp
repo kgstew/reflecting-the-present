@@ -84,6 +84,32 @@ void PatternManager::whiteChase(PinConfig* pin_configs, uint16_t* strip_lengths,
     }
 }
 
+void PatternManager::solidPin(PinConfig* pin_configs, uint16_t* strip_lengths, uint8_t num_pins, uint8_t target_pin, uint8_t num_strips_to_light) {
+    clearAllLEDs(pin_configs, num_pins);
+    
+    if (target_pin >= num_pins) {
+        return;
+    }
+    
+    uint8_t strips_to_light = min(num_strips_to_light, pin_configs[target_pin].num_strips);
+    
+    uint8_t strip_index = 0;
+    for (int pin = 0; pin < target_pin; pin++) {
+        strip_index += pin_configs[pin].num_strips;
+    }
+    
+    uint16_t led_position = 0;
+    
+    for (int strip = 0; strip < strips_to_light; strip++) {
+        uint16_t strip_length = strip_lengths[strip_index + strip];
+        
+        for (int led = 0; led < strip_length; led++) {
+            pin_configs[target_pin].led_array[led_position] = CRGB::White;
+            led_position++;
+        }
+    }
+}
+
 void PatternManager::clearAllLEDs(PinConfig* pin_configs, uint8_t num_pins) {
     for (int pin = 0; pin < num_pins; pin++) {
         for (int i = 0; i < pin_configs[pin].total_leds; i++) {
