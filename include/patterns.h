@@ -19,6 +19,7 @@ struct StripState {
     uint32_t duration; // 0 = infinite
     CRGB color;
     bool active;
+    bool reverse; // if true, patterns run from last index to 0
 };
 
 class StripPatternManager {
@@ -32,6 +33,7 @@ public:
     static void clearStrip(uint8_t strip_id);
     static void clearAllStrips();
     static StripState* getStripState(uint8_t strip_id);
+    static void setStripReverse(uint8_t strip_id, bool reverse);
 
 private:
     static StripState* strip_states;
@@ -42,4 +44,5 @@ private:
         uint16_t led_offset, uint32_t current_time);
     static uint8_t getStripId(uint8_t pin, uint8_t strip_on_pin);
     static void getStripPosition(uint8_t strip_id, uint8_t& pin, uint8_t& strip_on_pin);
+    static uint16_t transformLedIndex(uint8_t strip_id, uint16_t led_index, uint16_t strip_length);
 };

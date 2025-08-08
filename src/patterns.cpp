@@ -21,6 +21,7 @@ void StripPatternManager::init(uint8_t total_strips)
         strip_states[i].duration = 0; // infinite
         strip_states[i].color = CRGB::White;
         strip_states[i].active = true;
+        strip_states[i].reverse = false; // default to forward direction
     }
 }
 
@@ -103,7 +104,8 @@ void StripPatternManager::renderStrip(uint8_t strip_id, uint8_t pin, uint8_t str
         uint16_t global_led_base = strip_id * 122; // Simple approximation for now
 
         for (int led = 0; led < strip_length; led++) {
-            float hue_position = ((global_led_base + led) + chase_offset) * 360.0 / 256.0;
+            uint16_t pattern_led = transformLedIndex(strip_id, led, strip_length);
+            float hue_position = ((global_led_base + pattern_led) + chase_offset) * 360.0 / 256.0;
             uint8_t hue = ((uint16_t)(hue_position + (global_rainbow_time / 50)) % 360) * 255 / 360;
             led_array[led_offset + led] = CHSV(hue, 255, 255);
         }
@@ -126,35 +128,36 @@ void StripPatternManager::renderStrip(uint8_t strip_id, uint8_t pin, uint8_t str
         const uint32_t FLASH_DURATION = 5000;
         const uint32_t FADE_DURATION = 2000;
         const uint32_t TOTAL_DURATION = FLASH_DURATION + FADE_DURATION;
-        
+
         if (pattern_time <= FLASH_DURATION) {
             float fade_progress = (float)pattern_time / FLASH_DURATION;
             uint8_t brightness = 255 - (uint8_t)(fade_progress * (255 - 51));
-            
+
             for (int i = 0; i < strip_length; i++) {
                 led_array[led_offset + i] = CRGB(brightness, brightness, brightness);
             }
         } else {
             uint32_t fade_time = pattern_time - FLASH_DURATION;
             float fade_progress = (float)fade_time / FADE_DURATION;
-            
+
             if (fade_progress >= 1.0) {
                 fade_progress = 1.0;
                 strip_states[strip_id].pattern = PATTERN_RAINBOW_CHASE;
                 strip_states[strip_id].start_time = current_time;
                 strip_states[strip_id].duration = 0;
             }
-            
+
             uint16_t global_led_base = strip_id * 122;
             const uint16_t chase_speed = 30;
             float chase_offset = (global_rainbow_time / (float)chase_speed);
-            
+
             for (int led = 0; led < strip_length; led++) {
                 float hue_position = ((global_led_base + led) + chase_offset) * 360.0 / 256.0;
                 uint8_t hue = ((uint16_t)(hue_position + (global_rainbow_time / 50)) % 360) * 255 / 360;
-                
+
                 uint8_t target_brightness = (uint8_t)(204 * fade_progress);
-                led_array[led_offset + led] = CHSV(hue, 255, 51 + target_brightness);
+                uint16_t transformed_led = transformLedIndex(strip_id, led, strip_length);
+                led_array[led_offset + transformed_led] = CHSV(hue, 255, 51 + target_brightness);
             }
         }
         break;
@@ -200,4 +203,19 @@ void StripPatternManager::getStripPosition(uint8_t strip_id, uint8_t& pin, uint8
     // Simple reverse mapping
     pin = strip_id / 4;
     strip_on_pin = strip_id % 4;
+}
+
+void StripPatternManager::setStripReverse(uint8_t strip_id, bool reverse)
+{
+    if (strip_id >= total_strip_count)
+        return;
+    strip_states[strip_id].reverse = reverse;
+}
+
+uint16_t StripPatternManager::transformLedIndex(uint8_t strip_id, uint16_t led_index, uint16_t strip_length)
+{
+    if (strip_id >= total_strip_count || !strip_states[strip_id].reverse)
+        return led_index;
+
+    return strip_length - 1 - led_index;
 }
