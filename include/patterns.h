@@ -3,6 +3,9 @@
 #include <Arduino.h>
 #include <FastLED.h>
 
+// External reference to strip lengths array from main.cpp
+extern uint16_t strip_lengths[];
+
 struct PinConfig {
     uint8_t pin;
     uint8_t num_strips;
@@ -72,4 +75,5 @@ private:
     static void getStripCoordinates(uint8_t strip_id, float& center_x, float& center_y);
     static void getLedMatrixPosition(uint8_t strip_id, uint16_t led_index, float& x, float& y);
     static CRGB getPinwheelColor(float x, float y, uint32_t time, const ColorPalette& palette);
+    static uint16_t getGlobalLedBase(uint8_t strip_id);
 };

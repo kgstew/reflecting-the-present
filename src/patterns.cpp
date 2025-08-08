@@ -180,7 +180,7 @@ void StripPatternManager::renderStrip(uint8_t strip_id, uint8_t pin, uint8_t str
         const ColorPalette& palette = strip_states[strip_id].palette;
 
         // Calculate global LED position for this strip
-        uint16_t global_led_base = strip_id * 122; // Simple approximation for now
+        uint16_t global_led_base = getGlobalLedBase(strip_id);
 
         for (int led = 0; led < strip_length; led++) {
             uint16_t pattern_led = transformLedIndex(strip_id, led, strip_length);
@@ -257,7 +257,7 @@ void StripPatternManager::renderStrip(uint8_t strip_id, uint8_t pin, uint8_t str
             const uint16_t previous_speed_setting = strip_states[strip_id].previous_chase_speed;
             const float previous_chase_speed = (previous_speed_setting == 0) ? 0.0f : (101.0f - previous_speed_setting);
             float previous_chase_offset = (previous_chase_speed == 0.0f) ? 0.0f : (global_rainbow_time / previous_chase_speed);
-            uint16_t global_led_base = strip_id * 122;
+            uint16_t global_led_base = getGlobalLedBase(strip_id);
 
             for (int led = 0; led < strip_length; led++) {
                 uint16_t pattern_led = transformLedIndex(strip_id, led, strip_length);
@@ -412,13 +412,16 @@ void StripPatternManager::getLedMatrixPosition(uint8_t strip_id, uint16_t led_in
     getStripCoordinates(strip_id, center_x, center_y);
 
     // Calculate LED position based on strip orientation
+    uint16_t strip_length = strip_lengths[strip_id];
+    float strip_center = (strip_length - 1) / 2.0f;
+    
     if (strip_id <= 13) {
         // Vertical strips (pins 1-4)
         x = center_x;
-        y = center_y + (led_index - 61) * 1.0f; // Center around middle of 122 LEDs
+        y = center_y + (led_index - strip_center) * 1.0f; // Center around middle of strip
     } else {
         // Horizontal strips (pins 5-6)
-        x = center_x + (led_index - 61) * 1.0f; // Center around middle of 122 LEDs
+        x = center_x + (led_index - strip_center) * 1.0f; // Center around middle of strip
         y = center_y;
     }
 }
@@ -465,4 +468,13 @@ CRGB StripPatternManager::getPinwheelColor(float x, float y, uint32_t time, cons
     uint8_t b = color1.b + (blend * (color2.b - color1.b));
 
     return CRGB(r, g, b);
+}
+
+uint16_t StripPatternManager::getGlobalLedBase(uint8_t strip_id)
+{
+    uint16_t base = 0;
+    for (uint8_t i = 0; i < strip_id; i++) {
+        base += strip_lengths[i];
+    }
+    return base;
 }
