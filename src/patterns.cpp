@@ -1,6 +1,10 @@
 #include "patterns.h"
 #include <math.h>
 
+#ifndef PI
+#define PI 3.14159265359f
+#endif
+
 // StripPatternManager static variables
 StripState* StripPatternManager::strip_states = nullptr;
 uint8_t StripPatternManager::total_strip_count = 0;
