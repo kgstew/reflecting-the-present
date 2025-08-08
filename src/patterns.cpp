@@ -126,6 +126,44 @@ void StripPatternManager::renderStrip(uint8_t strip_id, uint8_t pin, uint8_t str
         }
         break;
 
+    case PATTERN_FLASHBULB: {
+        const uint32_t FLASH_DURATION = 5000;
+        const uint32_t FADE_DURATION = 2000;
+        const uint32_t TOTAL_DURATION = FLASH_DURATION + FADE_DURATION;
+        
+        if (pattern_time <= FLASH_DURATION) {
+            float fade_progress = (float)pattern_time / FLASH_DURATION;
+            uint8_t brightness = 255 - (uint8_t)(fade_progress * (255 - 51));
+            
+            for (int i = 0; i < strip_length; i++) {
+                led_array[led_offset + i] = CRGB(brightness, brightness, brightness);
+            }
+        } else {
+            uint32_t fade_time = pattern_time - FLASH_DURATION;
+            float fade_progress = (float)fade_time / FADE_DURATION;
+            
+            if (fade_progress >= 1.0) {
+                fade_progress = 1.0;
+                strip_states[strip_id].pattern = PATTERN_RAINBOW_CHASE;
+                strip_states[strip_id].start_time = current_time;
+                strip_states[strip_id].duration = 0;
+            }
+            
+            uint16_t global_led_base = strip_id * 122;
+            const uint16_t chase_speed = 30;
+            float chase_offset = (global_rainbow_time / (float)chase_speed);
+            
+            for (int led = 0; led < strip_length; led++) {
+                float hue_position = ((global_led_base + led) + chase_offset) * 360.0 / 256.0;
+                uint8_t hue = ((uint16_t)(hue_position + (global_rainbow_time / 50)) % 360) * 255 / 360;
+                
+                uint8_t target_brightness = (uint8_t)(204 * fade_progress);
+                led_array[led_offset + led] = CHSV(hue, 255, 51 + target_brightness);
+            }
+        }
+        break;
+    }
+
     default:
         break;
     }
