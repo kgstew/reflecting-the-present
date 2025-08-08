@@ -15,16 +15,17 @@ void StripPatternManager::init(uint8_t total_strips)
     }
     strip_states = new StripState[total_strips];
 
-    // Initialize all strips to rainbow chase by default
+    // Initialize all strips to color chase by default
     for (int i = 0; i < total_strips; i++) {
-        strip_states[i].pattern = PATTERN_RAINBOW_CHASE;
+        strip_states[i].pattern = PATTERN_COLOR_CHASE;
         strip_states[i].start_time = 0;
         strip_states[i].duration = 0; // infinite
         strip_states[i].color = CRGB::White;
         strip_states[i].active = true;
         strip_states[i].reverse = false; // default to forward direction
-        strip_states[i].palette.size = 0; // no palette by default
+        strip_states[i].palette = createRainbowPalette(); // default to rainbow palette
         strip_states[i].pinwheel_group_id = 255; // no group by default
+        strip_states[i].chase_speed = 50; // default chase speed (0-100 scale)
     }
 }
 
@@ -92,6 +93,41 @@ void StripPatternManager::setFlashBulbPattern(uint8_t* strip_ids, uint8_t num_st
     }
 }
 
+void StripPatternManager::setColorChasePattern(uint8_t* strip_ids, uint8_t num_strips, ColorPalette palette, uint16_t chase_speed, uint32_t duration)
+{
+    uint32_t current_millis = millis();
+    
+    // Clamp chase_speed to valid range (0-100)
+    uint16_t clamped_speed = (chase_speed > 100) ? 100 : chase_speed;
+    
+    for (int i = 0; i < num_strips; i++) {
+        uint8_t strip_id = strip_ids[i];
+        if (strip_id >= total_strip_count)
+            continue;
+            
+        strip_states[strip_id].pattern = PATTERN_COLOR_CHASE;
+        strip_states[strip_id].start_time = current_millis;
+        strip_states[strip_id].duration = duration;
+        strip_states[strip_id].active = true;
+        strip_states[strip_id].palette = palette;
+        strip_states[strip_id].chase_speed = clamped_speed;
+    }
+}
+
+ColorPalette StripPatternManager::createRainbowPalette()
+{
+    ColorPalette rainbow;
+    rainbow.colors[0] = CRGB::Red;
+    rainbow.colors[1] = CRGB::Orange;
+    rainbow.colors[2] = CRGB::Yellow;
+    rainbow.colors[3] = CRGB::Green;
+    rainbow.colors[4] = CRGB::Blue;
+    rainbow.colors[5] = CRGB::Indigo;
+    rainbow.colors[6] = CRGB::Violet;
+    rainbow.size = 7;
+    return rainbow;
+}
+
 void StripPatternManager::updateAllStrips(
     PinConfig* pin_configs, uint16_t* strip_lengths, uint8_t num_pins, uint32_t current_time)
 {
@@ -108,11 +144,13 @@ void StripPatternManager::updateAllStrips(
             // Check if pattern duration has expired
             if (strip_states[strip_id].duration > 0
                 && current_time > strip_states[strip_id].start_time + strip_states[strip_id].duration) {
-                // Reset to default rainbow chase
-                strip_states[strip_id].pattern = PATTERN_RAINBOW_CHASE;
+                // Reset to default color chase with rainbow palette
+                strip_states[strip_id].pattern = PATTERN_COLOR_CHASE;
                 strip_states[strip_id].start_time = current_time;
                 strip_states[strip_id].duration = 0;
                 strip_states[strip_id].active = true;
+                strip_states[strip_id].palette = createRainbowPalette();
+                strip_states[strip_id].chase_speed = 50;
             }
 
             renderStrip(
@@ -138,18 +176,45 @@ void StripPatternManager::renderStrip(uint8_t strip_id, uint8_t pin, uint8_t str
     uint32_t pattern_time = current_time - strip_states[strip_id].start_time;
 
     switch (strip_states[strip_id].pattern) {
-    case PATTERN_RAINBOW_CHASE: {
-        const uint16_t chase_speed = 30;
-        float chase_offset = (global_rainbow_time / (float)chase_speed);
+    case PATTERN_COLOR_CHASE: {
+        const uint16_t speed_setting = strip_states[strip_id].chase_speed;
+        // Convert 0-100 scale to chase speed: 0=no movement, 100=fastest
+        // Avoid division by zero and map to reasonable range (1-100 internal speed)
+        const float chase_speed = (speed_setting == 0) ? 0.0f : (101.0f - speed_setting);
+        float chase_offset = (chase_speed == 0.0f) ? 0.0f : (global_rainbow_time / chase_speed);
+        const ColorPalette& palette = strip_states[strip_id].palette;
 
         // Calculate global LED position for this strip
         uint16_t global_led_base = strip_id * 122; // Simple approximation for now
 
         for (int led = 0; led < strip_length; led++) {
             uint16_t pattern_led = transformLedIndex(strip_id, led, strip_length);
-            float hue_position = ((global_led_base + pattern_led) + chase_offset) * 360.0 / 256.0;
-            uint8_t hue = ((uint16_t)(hue_position + (global_rainbow_time / 50)) % 360) * 255 / 360;
-            led_array[led_offset + led] = CHSV(hue, 255, 255);
+            
+            if (palette.size == 0) {
+                // Fallback to rainbow if no palette
+                float hue_position = ((global_led_base + pattern_led) + chase_offset) * 360.0 / 256.0;
+                uint8_t hue = ((uint16_t)(hue_position + (global_rainbow_time / 50)) % 360) * 255 / 360;
+                led_array[led_offset + led] = CHSV(hue, 255, 255);
+            } else {
+                // Use palette colors
+                float position = ((global_led_base + pattern_led) + chase_offset) / 256.0f;
+                position = fmod(position + (global_rainbow_time / 5000.0f), 1.0f);
+                
+                float palette_position = position * palette.size;
+                uint8_t palette_index = (uint8_t)palette_position % palette.size;
+                uint8_t next_index = (palette_index + 1) % palette.size;
+                float blend = palette_position - palette_index;
+                
+                // Blend between adjacent palette colors
+                CRGB color1 = palette.colors[palette_index];
+                CRGB color2 = palette.colors[next_index];
+                
+                uint8_t r = color1.r + (blend * (color2.r - color1.r));
+                uint8_t g = color1.g + (blend * (color2.g - color1.g));
+                uint8_t b = color1.b + (blend * (color2.b - color1.b));
+                
+                led_array[led_offset + led] = CRGB(r, g, b);
+            }
         }
         break;
     }
@@ -184,9 +249,11 @@ void StripPatternManager::renderStrip(uint8_t strip_id, uint8_t pin, uint8_t str
 
             if (fade_progress >= 1.0) {
                 fade_progress = 1.0;
-                strip_states[strip_id].pattern = PATTERN_RAINBOW_CHASE;
+                strip_states[strip_id].pattern = PATTERN_COLOR_CHASE;
                 strip_states[strip_id].start_time = current_time;
                 strip_states[strip_id].duration = 0;
+                strip_states[strip_id].palette = createRainbowPalette();
+                strip_states[strip_id].chase_speed = 50;
             }
 
             uint16_t global_led_base = strip_id * 122;

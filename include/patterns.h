@@ -12,7 +12,7 @@ struct PinConfig {
 };
 
 enum PatternType {
-    PATTERN_RAINBOW_CHASE,
+    PATTERN_COLOR_CHASE,
     PATTERN_WHITE_CHASE,
     PATTERN_SOLID_COLOR,
     PATTERN_OFF,
@@ -35,6 +35,7 @@ struct StripState {
     bool reverse; // if true, patterns run from last index to 0
     ColorPalette palette; // for patterns that use color palettes
     uint8_t pinwheel_group_id; // for pinwheel patterns, which group this strip belongs to
+    uint16_t chase_speed; // speed for chase patterns (lower = faster)
 };
 
 class StripPatternManager {
@@ -45,6 +46,8 @@ public:
         uint8_t strip_id, PatternType pattern, CRGB color, uint32_t delay_ms, uint32_t duration = 0);
     static void setPinwheelPattern(uint8_t* strip_ids, uint8_t num_strips, ColorPalette palette, uint32_t duration = 0);
     static void setFlashBulbPattern(uint8_t* strip_ids, uint8_t num_strips);
+    static void setColorChasePattern(uint8_t* strip_ids, uint8_t num_strips, ColorPalette palette, uint16_t chase_speed = 50, uint32_t duration = 0);
+    static ColorPalette createRainbowPalette();
     static void updateAllStrips(
         PinConfig* pin_configs, uint16_t* strip_lengths, uint8_t num_pins, uint32_t current_time);
     static void clearStrip(uint8_t strip_id);

@@ -78,15 +78,35 @@ void loop()
 
     // Demo: trigger different patterns on different strips every 10 seconds
     if (current_time - last_demo_time > 10000) {
-        uint8_t demo_step = (current_time / 10000) % 3;
+        uint8_t demo_step = (current_time / 10000) % 4;
 
         switch (demo_step) {
-        case 0:
-            // All rainbow chase (default)
-            Serial.println("Demo: All strips rainbow chase");
-            break;
+        case 0: {
+            Serial.println("Demo: Color chase with default palette");
+            ColorPalette none;
+            none.size = 0;
 
+            uint8_t all_strips[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
+            StripPatternManager::setColorChasePattern(all_strips, 14, none, 20, 10000); // Slow chase speed
+            break;
+        }
         case 1: {
+            // Color chase with ocean colors
+            Serial.println("Demo: Color chase with ocean palette");
+            ColorPalette ocean_palette;
+            ocean_palette.colors[0] = CRGB::Navy;
+            ocean_palette.colors[1] = CRGB::Blue;
+            ocean_palette.colors[2] = CRGB::DeepSkyBlue;
+            ocean_palette.colors[3] = CRGB::Cyan;
+            ocean_palette.colors[4] = CRGB::Aqua;
+            ocean_palette.size = 5;
+
+            uint8_t all_strips[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
+            StripPatternManager::setColorChasePattern(all_strips, 14, ocean_palette, 80, 10000); // Fast chase speed
+            break;
+        }
+
+        case 2: {
             // Flash multiple strips with white bulb effect
             Serial.println("Demo: Multiple strips flashbulb white");
             uint8_t flashbulb_strips[] = { 0, 3, 7, 11, 14, 18 }; // Mix of vertical and horizontal strips
@@ -94,7 +114,7 @@ void loop()
             break;
         }
 
-        case 2: {
+        case 3: {
             // Demo pinwheel pattern with warm colors
             Serial.println("Demo: Pinwheel pattern with warm colors");
             ColorPalette warm_palette;
