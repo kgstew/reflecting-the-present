@@ -11,7 +11,15 @@ struct PinConfig {
     CRGB* led_array;
 };
 
-enum PatternType { PATTERN_RAINBOW_CHASE, PATTERN_WHITE_CHASE, PATTERN_SOLID_COLOR, PATTERN_OFF, PATTERN_FLASHBULB, PATTERN_PINWHEEL, PATTERN_CUSTOM };
+enum PatternType {
+    PATTERN_RAINBOW_CHASE,
+    PATTERN_WHITE_CHASE,
+    PATTERN_SOLID_COLOR,
+    PATTERN_OFF,
+    PATTERN_FLASHBULB,
+    PATTERN_PINWHEEL,
+    PATTERN_CUSTOM
+};
 
 struct ColorPalette {
     CRGB colors[8];
@@ -36,6 +44,7 @@ public:
     static void setStripPatternWithDelay(
         uint8_t strip_id, PatternType pattern, CRGB color, uint32_t delay_ms, uint32_t duration = 0);
     static void setPinwheelPattern(uint8_t* strip_ids, uint8_t num_strips, ColorPalette palette, uint32_t duration = 0);
+    static void setFlashBulbPattern(uint8_t* strip_ids, uint8_t num_strips);
     static void updateAllStrips(
         PinConfig* pin_configs, uint16_t* strip_lengths, uint8_t num_pins, uint32_t current_time);
     static void clearStrip(uint8_t strip_id);

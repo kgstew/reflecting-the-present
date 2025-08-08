@@ -86,11 +86,13 @@ void loop()
             Serial.println("Demo: All strips rainbow chase");
             break;
 
-        case 1:
-            // Turn strip 5 white for 2 seconds
-            Serial.println("Demo: Strip 5 solid white");
-            StripPatternManager::setStripPattern(0, PATTERN_FLASHBULB, CRGB::White, 7000);
+        case 1: {
+            // Flash multiple strips with white bulb effect
+            Serial.println("Demo: Multiple strips flashbulb white");
+            uint8_t flashbulb_strips[] = { 0, 3, 7, 11, 14, 18 }; // Mix of vertical and horizontal strips
+            StripPatternManager::setFlashBulbPattern(flashbulb_strips, 6);
             break;
+        }
 
         case 2: {
             // Demo pinwheel pattern with warm colors
