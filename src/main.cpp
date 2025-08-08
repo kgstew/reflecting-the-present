@@ -77,17 +77,15 @@ void loop()
     uint32_t current_time = millis() - start_time;
 
     // Demo: trigger different patterns on different strips every 10 seconds
-    if (current_time - last_demo_time > 10000) {
-        uint8_t demo_step = (current_time / 10000) % 4;
+    if (current_time - last_demo_time > 15000) {
+        uint8_t demo_step = (current_time / 15000) % 4;
 
         switch (demo_step) {
         case 0: {
-            Serial.println("Demo: Color chase with default palette");
             ColorPalette none;
             none.size = 0;
-
-            uint8_t all_strips[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
-            StripPatternManager::setColorChasePattern(all_strips, 14, none, 20, 10000); // Slow chase speed
+            uint8_t outside[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
+            StripPatternManager::setColorChasePattern(outside, 14, none, 80, 20000); // Fast chase speed
             break;
         }
         case 1: {
@@ -101,8 +99,8 @@ void loop()
             ocean_palette.colors[4] = CRGB::Aqua;
             ocean_palette.size = 5;
 
-            uint8_t all_strips[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
-            StripPatternManager::setColorChasePattern(all_strips, 14, ocean_palette, 80, 10000); // Fast chase speed
+            uint8_t outside[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
+            StripPatternManager::setColorChasePattern(outside, 14, ocean_palette, 80, 20000); // Fast chase speed
             break;
         }
 

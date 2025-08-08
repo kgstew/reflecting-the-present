@@ -36,6 +36,10 @@ struct StripState {
     ColorPalette palette; // for patterns that use color palettes
     uint8_t pinwheel_group_id; // for pinwheel patterns, which group this strip belongs to
     uint16_t chase_speed; // speed for chase patterns (lower = faster)
+    // State preservation for flashbulb transitions
+    PatternType previous_pattern;
+    ColorPalette previous_palette;
+    uint16_t previous_chase_speed;
 };
 
 class StripPatternManager {
