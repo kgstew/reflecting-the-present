@@ -76,9 +76,9 @@ void loop()
     static uint32_t last_demo_time = 0;
     uint32_t current_time = millis() - start_time;
 
-    // Demo: trigger different patterns on different strips every 3 seconds
-    if (current_time - last_demo_time > 3000) {
-        uint8_t demo_step = (current_time / 3000) % 6;
+    // Demo: trigger different patterns on different strips every 10 seconds
+    if (current_time - last_demo_time > 10000) {
+        uint8_t demo_step = (current_time / 10000) % 3;
 
         switch (demo_step) {
         case 0:
@@ -91,6 +91,21 @@ void loop()
             Serial.println("Demo: Strip 5 solid white");
             StripPatternManager::setStripPattern(0, PATTERN_FLASHBULB, CRGB::White, 7000);
             break;
+
+        case 2: {
+            // Demo pinwheel pattern with warm colors
+            Serial.println("Demo: Pinwheel pattern with warm colors");
+            ColorPalette warm_palette;
+            warm_palette.colors[0] = CRGB::Red;
+            warm_palette.colors[1] = CRGB::Orange;
+            warm_palette.colors[2] = CRGB::Yellow;
+            warm_palette.colors[3] = CRGB::Pink;
+            warm_palette.size = 4;
+
+            uint8_t pinwheel_strips[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
+            StripPatternManager::setPinwheelPattern(pinwheel_strips, 14, warm_palette, 10000);
+            break;
+        }
 
             // case 2:
             //     // Turn strips 10-12 red for 2 seconds

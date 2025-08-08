@@ -11,7 +11,12 @@ struct PinConfig {
     CRGB* led_array;
 };
 
-enum PatternType { PATTERN_RAINBOW_CHASE, PATTERN_WHITE_CHASE, PATTERN_SOLID_COLOR, PATTERN_OFF, PATTERN_FLASHBULB, PATTERN_CUSTOM };
+enum PatternType { PATTERN_RAINBOW_CHASE, PATTERN_WHITE_CHASE, PATTERN_SOLID_COLOR, PATTERN_OFF, PATTERN_FLASHBULB, PATTERN_PINWHEEL, PATTERN_CUSTOM };
+
+struct ColorPalette {
+    CRGB colors[8];
+    uint8_t size;
+};
 
 struct StripState {
     PatternType pattern;
@@ -20,6 +25,8 @@ struct StripState {
     CRGB color;
     bool active;
     bool reverse; // if true, patterns run from last index to 0
+    ColorPalette palette; // for patterns that use color palettes
+    uint8_t pinwheel_group_id; // for pinwheel patterns, which group this strip belongs to
 };
 
 class StripPatternManager {
@@ -28,6 +35,7 @@ public:
     static void setStripPattern(uint8_t strip_id, PatternType pattern, CRGB color = CRGB::White, uint32_t duration = 0);
     static void setStripPatternWithDelay(
         uint8_t strip_id, PatternType pattern, CRGB color, uint32_t delay_ms, uint32_t duration = 0);
+    static void setPinwheelPattern(uint8_t* strip_ids, uint8_t num_strips, ColorPalette palette, uint32_t duration = 0);
     static void updateAllStrips(
         PinConfig* pin_configs, uint16_t* strip_lengths, uint8_t num_pins, uint32_t current_time);
     static void clearStrip(uint8_t strip_id);
@@ -45,4 +53,7 @@ private:
     static uint8_t getStripId(uint8_t pin, uint8_t strip_on_pin);
     static void getStripPosition(uint8_t strip_id, uint8_t& pin, uint8_t& strip_on_pin);
     static uint16_t transformLedIndex(uint8_t strip_id, uint16_t led_index, uint16_t strip_length);
+    static void getStripCoordinates(uint8_t strip_id, float& center_x, float& center_y);
+    static void getLedMatrixPosition(uint8_t strip_id, uint16_t led_index, float& x, float& y);
+    static CRGB getPinwheelColor(float x, float y, uint32_t time, const ColorPalette& palette);
 };
