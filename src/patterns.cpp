@@ -89,10 +89,6 @@ void StripPatternManager::renderStrip(uint8_t strip_id, uint8_t pin, uint8_t str
 
     // Don't render if pattern hasn't started yet
     if (current_time < strip_states[strip_id].start_time) {
-        // Keep previous pattern or default to off
-        for (int i = 0; i < strip_length; i++) {
-            led_array[led_offset + i] = CRGB::Black;
-        }
         return;
     }
 
