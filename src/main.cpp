@@ -70,11 +70,66 @@ void setup()
 
     // Setup the pattern program
     setupPatternProgram();
+
+    // Initialize FlashBulb system
+    initFlashBulbManager();
+
+    // Add FlashBulb patterns for demo
+    uint8_t demo_strips_1[] = { 0, 1, 2 };
+    addFlashBulbPattern(demo_strips_1, 3);
+
+    uint8_t demo_strips_2[] = { 10, 11, 12, 13, 14 };
+    addFlashBulbPattern(demo_strips_2, 5);
+
+    uint8_t demo_strips_3[] = { 5, 15, 20 };
+    addFlashBulbPattern(demo_strips_3, 3);
+}
+
+void demoFlashBulb()
+{
+    static unsigned long last_demo = 0;
+
+    if (current_time - last_demo >= 10000) { // Every 5 seconds
+        last_demo = current_time;
+
+        // Random number of strips (0-5)
+        uint8_t num_random_strips = random(0, 6);
+
+        if (num_random_strips > 0) {
+            // Create random strip array
+            uint8_t random_strips[5];
+            for (uint8_t i = 0; i < num_random_strips; i++) {
+                random_strips[i] = random(0, 22); // Random strip 0-21
+            }
+
+            // Add temporary FlashBulb pattern
+            addFlashBulbPattern(random_strips, num_random_strips);
+
+            // Trigger the newly added pattern (it will be the last one)
+            uint8_t pattern_index = flashbulb_manager.pattern_count - 1;
+            triggerFlashBulb(pattern_index);
+
+            Serial.print("FlashBulb demo triggered on ");
+            Serial.print(num_random_strips);
+            Serial.print(" strips: ");
+            for (uint8_t i = 0; i < num_random_strips; i++) {
+                Serial.print(random_strips[i]);
+                if (i < num_random_strips - 1)
+                    Serial.print(", ");
+            }
+            Serial.println();
+        } else {
+            Serial.println("FlashBulb demo: No strips selected this time");
+        }
+    }
 }
 
 void loop()
 {
     current_time = millis();
+
+    // Run demo FlashBulb trigger
+    demoFlashBulb();
 
     // Run the queued pattern program
     runQueuedChasePattern();

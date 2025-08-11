@@ -14,6 +14,14 @@ struct PinConfig {
 #define MAX_QUEUE_SIZE 10
 #define MAX_PALETTE_SIZE 16
 #define MAX_TARGET_STRIPS 22
+#define MAX_FLASHBULB_PATTERNS 5
+
+enum FlashBulbState {
+    FLASHBULB_INACTIVE,
+    FLASHBULB_FLASH,
+    FLASHBULB_FADE_TO_BLACK,
+    FLASHBULB_TRANSITION_BACK
+};
 
 struct ChasePattern {
     CRGB palette[MAX_PALETTE_SIZE];
@@ -30,6 +38,15 @@ struct ChasePattern {
     uint16_t transition_duration;
 };
 
+struct FlashBulbPattern {
+    uint8_t target_strips[MAX_TARGET_STRIPS];
+    uint8_t num_target_strips;
+    FlashBulbState state;
+    unsigned long start_time;
+    CRGB saved_colors[MAX_TARGET_STRIPS * 122]; // Store original colors for transition back
+    uint16_t saved_color_count;
+};
+
 struct PatternQueue {
     ChasePattern patterns[MAX_QUEUE_SIZE];
     uint8_t queue_size;
@@ -37,11 +54,19 @@ struct PatternQueue {
     bool is_running;
 };
 
+struct FlashBulbManager {
+    FlashBulbPattern patterns[MAX_FLASHBULB_PATTERNS];
+    uint8_t pattern_count;
+};
+
 // External references to global variables from main.cpp
 extern unsigned long current_time;
 extern uint16_t strip_lengths[];
 extern uint8_t strip_map[];
 extern PinConfig pin_configs[];
+
+// External references to pattern managers
+extern FlashBulbManager flashbulb_manager;
 
 // Pattern queue functions
 void addPatternToQueue(CRGB* palette, uint8_t palette_size, uint8_t* target_strips, uint8_t num_target_strips, uint16_t speed, unsigned long transition_delay, uint16_t transition_duration = 1000);
@@ -54,6 +79,13 @@ void runQueuedChasePattern();
 // Chase pattern functions
 void chasePattern(uint8_t* target_strips, uint8_t num_target_strips, CRGB* palette, uint8_t palette_size, uint16_t speed);
 void runChasePattern(ChasePattern* pattern);
+
+// FlashBulb pattern functions
+void initFlashBulbManager();
+void addFlashBulbPattern(uint8_t* target_strips, uint8_t num_target_strips);
+void triggerFlashBulb(uint8_t pattern_index);
+void updateFlashBulbPatterns();
+void runFlashBulbPattern(FlashBulbPattern* pattern);
 
 // Example program setup
 void setupPatternProgram();
