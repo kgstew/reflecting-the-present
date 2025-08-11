@@ -70,6 +70,15 @@ void setup()
     Serial.println("Strip pattern manager initialized");
 }
 
+void triggerFlashBulbPattern(uint32_t current_time)
+{
+    if (current_time % 5000 == 0) {
+        Serial.println("Demo: Multiple strips flashbulb white");
+        uint8_t flashbulb_strips[] = { 0, 3, 7, 11, 14, 18 }; // Mix of vertical and horizontal strips
+        StripPatternManager::setFlashBulbPattern(flashbulb_strips, 6);
+    }
+}
+
 void loop()
 {
     static uint32_t start_time = millis();
@@ -77,9 +86,9 @@ void loop()
     uint32_t current_time = millis() - start_time;
 
     // Demo: trigger different patterns on different strips every 15 seconds
-    uint8_t demo_step = (current_time / 15000) % 4;
+    uint8_t demo_step = (current_time / 10000) % 2;
 
-    if (current_time - last_demo_time > 15000) {
+    if (current_time - last_demo_time > 10000) {
         last_demo_time = current_time;
 
         switch (demo_step) {
@@ -106,68 +115,14 @@ void loop()
                 outside, 14, ocean_palette, 80, 0); // Fast chase speed, infinite duration
             break;
         }
-
-        case 2: {
-            // Flash multiple strips with white bulb effect
-            Serial.println("Demo: Multiple strips flashbulb white");
-            uint8_t flashbulb_strips[] = { 0, 3, 7, 11, 14, 18 }; // Mix of vertical and horizontal strips
-            StripPatternManager::setFlashBulbPattern(flashbulb_strips, 6);
-            break;
         }
-
-        case 3: {
-            // Demo pinwheel pattern with warm colors
-            Serial.println("Demo: Pinwheel pattern with warm colors");
-            ColorPalette warm_palette;
-            warm_palette.colors[0] = CRGB::Red;
-            warm_palette.colors[1] = CRGB::Orange;
-            warm_palette.colors[2] = CRGB::Yellow;
-            warm_palette.colors[3] = CRGB::Pink;
-            warm_palette.size = 4;
-
-            uint8_t pinwheel_strips[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
-            StripPatternManager::setPinwheelPattern(pinwheel_strips, 14, warm_palette, 0); // Infinite duration
-            break;
-        }
-
-            // case 2:
-            //     // Turn strips 10-12 red for 2 seconds
-            //     Serial.println("Demo: Strips 10-12 solid red");
-            //     StripPatternManager::setStripPattern(10, PATTERN_SOLID_COLOR, CRGB::Red, 2000);
-            //     StripPatternManager::setStripPattern(11, PATTERN_SOLID_COLOR, CRGB::Red, 2000);
-            //     StripPatternManager::setStripPattern(12, PATTERN_SOLID_COLOR, CRGB::Red, 2000);
-            //     break;
-
-            // case 3:
-            //     // Turn strip 0 off for 2 seconds
-            //     Serial.println("Demo: Strip 0 off");
-            //     StripPatternManager::setStripPattern(0, PATTERN_OFF, CRGB::Black, 2000);
-            //     break;
-
-            // case 4:
-            //     // Sequential blue pattern with delays
-            //     Serial.println("Demo: Sequential blue pattern");
-            //     for (int i = 15; i < 19; i++) {
-            //         StripPatternManager::setStripPatternWithDelay(i, PATTERN_SOLID_COLOR, CRGB::Blue, (i-15)*200,
-            //         1500);
-            //     }
-            //     break;
-
-            // case 5:
-            //     // Mixed colors on pin 6 strips (strips 19-21)
-            //     Serial.println("Demo: Mixed colors on pin 6");
-            //     StripPatternManager::setStripPattern(19, PATTERN_SOLID_COLOR, CRGB::Green, 2500);
-            //     StripPatternManager::setStripPattern(20, PATTERN_SOLID_COLOR, CRGB::Purple, 2500);
-            //     StripPatternManager::setStripPattern(21, PATTERN_SOLID_COLOR, CRGB::Yellow, 2500);
-            //     break;
-        }
-
         last_demo_time = current_time;
     }
+
+    triggerFlashBulbPattern(current_time);
 
     // Update all strips with their individual patterns
     StripPatternManager::updateAllStrips(pin_configs, strip_lengths, NUM_PINS, current_time);
 
     FastLED.show();
-    delay(10);
 }
