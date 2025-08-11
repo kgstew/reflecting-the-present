@@ -155,10 +155,10 @@ void runQueuedChasePattern()
             any_pattern_updated = true;
         }
     }
-    
+
     // Update FlashBulb patterns LAST (they may override or blend with chase patterns)
     updateFlashBulbPatterns();
-    
+
     // Check if any FlashBulb patterns are active
     for (uint8_t i = 0; i < flashbulb_manager.pattern_count; i++) {
         if (flashbulb_manager.patterns[i].state != FLASHBULB_INACTIVE) {
@@ -215,11 +215,12 @@ void runChasePattern(ChasePattern* pattern)
                     if (pattern->is_transitioning) {
                         // Check if there's an active pattern on this strip that's different from current pattern
                         bool strip_has_transition = false;
-                        
+
                         // Check if this strip is shared with other active patterns
                         for (uint8_t p = 0; p < pattern_queue.queue_size; p++) {
                             ChasePattern& other_pattern = pattern_queue.patterns[p];
-                            if (&other_pattern != pattern && (other_pattern.is_active || other_pattern.is_transitioning)) {
+                            if (&other_pattern != pattern
+                                && (other_pattern.is_active || other_pattern.is_transitioning)) {
                                 // Check if this strip is in the other pattern
                                 for (uint8_t s = 0; s < other_pattern.num_target_strips; s++) {
                                     if (other_pattern.target_strips[s] == strip_id) {
@@ -228,20 +229,23 @@ void runChasePattern(ChasePattern* pattern)
                                     }
                                 }
                             }
-                            if (strip_has_transition) break;
+                            if (strip_has_transition)
+                                break;
                         }
-                        
+
                         if (strip_has_transition || !pattern->is_active) {
                             unsigned long transition_elapsed = current_time - pattern->transition_start_time;
-                            
+
                             if (transition_elapsed < pattern->transition_duration) {
                                 if (pattern->is_active) {
                                     // Transitioning out (fade out)
-                                    uint8_t transition_blend = 255 - (transition_elapsed * 255) / pattern->transition_duration;
+                                    uint8_t transition_blend
+                                        = 255 - (transition_elapsed * 255) / pattern->transition_duration;
                                     blended_color.fadeToBlackBy(255 - transition_blend);
                                 } else {
                                     // Transitioning in (fade in)
-                                    uint8_t transition_blend = (transition_elapsed * 255) / pattern->transition_duration;
+                                    uint8_t transition_blend
+                                        = (transition_elapsed * 255) / pattern->transition_duration;
                                     CRGB existing_color = pin_configs[pin_index].led_array[strip_start_offset + led];
                                     blended_color = existing_color.lerp8(blended_color, transition_blend);
                                 }
@@ -333,18 +337,19 @@ void setupPatternProgram()
     static uint8_t exterior_rings[] = { 0, 1, 2, 11, 12, 13 };
 
     // Add patterns to queue with different durations and speeds
-    addPatternToQueue(warm_palette, 3, all_strips, 22, 50, 0); // 10 seconds - warm colors on all strips
+    addPatternToQueue(rainbow_palette, 3, all_strips, 22, 50, 0); // 10 seconds - warm colors on all strips
     addPatternToQueue(sunset_palette, 4, exterior_rings, 6, 80, 6000); // 6 seconds - sunset colors on corners, slower
-    addPatternToQueue(cool_palette, 3, outside, 14, 30, 8000); // 8 seconds - cool colors on first half, faster
-    addPatternToQueue(warm_palette, 6, inside, 8, 40, 12000); // 12 seconds - rainbow on second half
-    addPatternToQueue(rainbow_palette, 6, all_strips, 22, 25, 15000); // 15 seconds - fast rainbow on all strips
+    addPatternToQueue(cool_palette, 3, inside, 14, 30, 8000); // 8 seconds - cool colors on first half, faster
+    addPatternToQueue(warm_palette, 6, outside, 8, 40, 12000); // 12 seconds - rainbow on second half
+    addPatternToQueue(cool_palette, 6, all_strips, 22, 25, 15000); // 15 seconds - fast rainbow on all strips
 
     // Start the pattern program
     startPatternQueue();
 }
 
 // FlashBulb pattern functions
-void initFlashBulbManager() {
+void initFlashBulbManager()
+{
     flashbulb_manager.pattern_count = 0;
     for (uint8_t i = 0; i < MAX_FLASHBULB_PATTERNS; i++) {
         flashbulb_manager.patterns[i].state = FLASHBULB_INACTIVE;
@@ -353,11 +358,13 @@ void initFlashBulbManager() {
     }
 }
 
-void addFlashBulbPattern(uint8_t* target_strips, uint8_t num_target_strips) {
-    if (flashbulb_manager.pattern_count >= MAX_FLASHBULB_PATTERNS) return;
-    
+void addFlashBulbPattern(uint8_t* target_strips, uint8_t num_target_strips)
+{
+    if (flashbulb_manager.pattern_count >= MAX_FLASHBULB_PATTERNS)
+        return;
+
     FlashBulbPattern& pattern = flashbulb_manager.patterns[flashbulb_manager.pattern_count];
-    
+
     // Copy target strips
     for (uint8_t i = 0; i < num_target_strips && i < MAX_TARGET_STRIPS; i++) {
         pattern.target_strips[i] = target_strips[i];
@@ -365,209 +372,220 @@ void addFlashBulbPattern(uint8_t* target_strips, uint8_t num_target_strips) {
     pattern.num_target_strips = num_target_strips;
     pattern.state = FLASHBULB_INACTIVE;
     pattern.saved_color_count = 0;
-    
+
     flashbulb_manager.pattern_count++;
 }
 
-void triggerFlashBulb(uint8_t pattern_index) {
-    if (pattern_index >= flashbulb_manager.pattern_count) return;
-    
+void triggerFlashBulb(uint8_t pattern_index)
+{
+    if (pattern_index >= flashbulb_manager.pattern_count)
+        return;
+
     FlashBulbPattern& pattern = flashbulb_manager.patterns[pattern_index];
-    
+
     // Save current colors for transition back
     pattern.saved_color_count = 0;
     for (uint8_t i = 0; i < pattern.num_target_strips; i++) {
         uint8_t strip_id = pattern.target_strips[i];
-        if (strip_id >= 22) continue;
-        
+        if (strip_id >= 22)
+            continue;
+
         uint8_t pin_index = strip_map[strip_id];
         uint16_t strip_start_offset = 0;
-        
+
         // Calculate the starting LED position for this strip within the pin's LED array
         for (uint8_t s = 0; s < strip_id; s++) {
             if (strip_map[s] == pin_index) {
                 strip_start_offset += strip_lengths[s];
             }
         }
-        
+
         uint16_t strip_length = strip_lengths[strip_id];
-        
+
         // Save current colors
         for (uint16_t led = 0; led < strip_length && pattern.saved_color_count < (MAX_TARGET_STRIPS * 122); led++) {
-            pattern.saved_colors[pattern.saved_color_count] = pin_configs[pin_index].led_array[strip_start_offset + led];
+            pattern.saved_colors[pattern.saved_color_count]
+                = pin_configs[pin_index].led_array[strip_start_offset + led];
             pattern.saved_color_count++;
         }
     }
-    
+
     // Set all target LEDs to white immediately
     for (uint8_t i = 0; i < pattern.num_target_strips; i++) {
         uint8_t strip_id = pattern.target_strips[i];
-        if (strip_id >= 22) continue;
-        
+        if (strip_id >= 22)
+            continue;
+
         uint8_t pin_index = strip_map[strip_id];
         uint16_t strip_start_offset = 0;
-        
+
         // Calculate the starting LED position for this strip within the pin's LED array
         for (uint8_t s = 0; s < strip_id; s++) {
             if (strip_map[s] == pin_index) {
                 strip_start_offset += strip_lengths[s];
             }
         }
-        
+
         uint16_t strip_length = strip_lengths[strip_id];
-        
+
         // Set to full white
         for (uint16_t led = 0; led < strip_length; led++) {
             pin_configs[pin_index].led_array[strip_start_offset + led] = CRGB::White;
         }
     }
-    
+
     // Start the flash sequence
     pattern.state = FLASHBULB_FLASH;
     pattern.start_time = current_time;
-    
+
     FastLED.show();
 }
 
-void updateFlashBulbPatterns() {
+void updateFlashBulbPatterns()
+{
     for (uint8_t i = 0; i < flashbulb_manager.pattern_count; i++) {
         FlashBulbPattern& pattern = flashbulb_manager.patterns[i];
-        
+
         if (pattern.state != FLASHBULB_INACTIVE) {
             runFlashBulbPattern(&pattern);
         }
     }
 }
 
-void runFlashBulbPattern(FlashBulbPattern* pattern) {
+void runFlashBulbPattern(FlashBulbPattern* pattern)
+{
     unsigned long elapsed = current_time - pattern->start_time;
-    
+
     switch (pattern->state) {
-        case FLASHBULB_FLASH:
-            // Flash is instantaneous, immediately start fade
-            pattern->state = FLASHBULB_FADE_TO_BLACK;
+    case FLASHBULB_FLASH:
+        // Flash is instantaneous, immediately start fade
+        pattern->state = FLASHBULB_FADE_TO_BLACK;
+        pattern->start_time = current_time;
+        Serial.println("FlashBulb: Starting fade to black phase");
+        break;
+
+    case FLASHBULB_FADE_TO_BLACK:
+        if (elapsed < 5000) { // 5 second fade to black
+            uint8_t fade_amount = (elapsed * 255) / 5000;
+
+            // Apply fade to all target strips
+            for (uint8_t i = 0; i < pattern->num_target_strips; i++) {
+                uint8_t strip_id = pattern->target_strips[i];
+                if (strip_id >= 22)
+                    continue;
+
+                uint8_t pin_index = strip_map[strip_id];
+                uint16_t strip_start_offset = 0;
+
+                // Calculate the starting LED position for this strip within the pin's LED array
+                for (uint8_t s = 0; s < strip_id; s++) {
+                    if (strip_map[s] == pin_index) {
+                        strip_start_offset += strip_lengths[s];
+                    }
+                }
+
+                uint16_t strip_length = strip_lengths[strip_id];
+
+                // Fade from white to black
+                for (uint16_t led = 0; led < strip_length; led++) {
+                    CRGB white = CRGB::White;
+                    CRGB black = CRGB::Black;
+                    pin_configs[pin_index].led_array[strip_start_offset + led] = white.lerp8(black, fade_amount);
+                }
+            }
+
+            // Debug output every second
+            static unsigned long last_debug = 0;
+            if (current_time - last_debug >= 1000) {
+                last_debug = current_time;
+                Serial.print("FlashBulb fade progress: ");
+                Serial.print((elapsed * 100) / 5000);
+                Serial.println("%");
+            }
+        } else {
+            // Fade complete, start transition back
+            pattern->state = FLASHBULB_TRANSITION_BACK;
             pattern->start_time = current_time;
-            Serial.println("FlashBulb: Starting fade to black phase");
-            break;
-            
-        case FLASHBULB_FADE_TO_BLACK:
-            if (elapsed < 5000) { // 5 second fade to black
-                uint8_t fade_amount = (elapsed * 255) / 5000;
-                
-                // Apply fade to all target strips
-                for (uint8_t i = 0; i < pattern->num_target_strips; i++) {
-                    uint8_t strip_id = pattern->target_strips[i];
-                    if (strip_id >= 22) continue;
-                    
-                    uint8_t pin_index = strip_map[strip_id];
-                    uint16_t strip_start_offset = 0;
-                    
-                    // Calculate the starting LED position for this strip within the pin's LED array
-                    for (uint8_t s = 0; s < strip_id; s++) {
-                        if (strip_map[s] == pin_index) {
-                            strip_start_offset += strip_lengths[s];
-                        }
-                    }
-                    
-                    uint16_t strip_length = strip_lengths[strip_id];
-                    
-                    // Fade from white to black
-                    for (uint16_t led = 0; led < strip_length; led++) {
-                        CRGB white = CRGB::White;
-                        CRGB black = CRGB::Black;
-                        pin_configs[pin_index].led_array[strip_start_offset + led] = white.lerp8(black, fade_amount);
+
+            // Ensure LEDs are black at the start of transition back phase
+            for (uint8_t i = 0; i < pattern->num_target_strips; i++) {
+                uint8_t strip_id = pattern->target_strips[i];
+                if (strip_id >= 22)
+                    continue;
+
+                uint8_t pin_index = strip_map[strip_id];
+                uint16_t strip_start_offset = 0;
+
+                // Calculate the starting LED position for this strip within the pin's LED array
+                for (uint8_t s = 0; s < strip_id; s++) {
+                    if (strip_map[s] == pin_index) {
+                        strip_start_offset += strip_lengths[s];
                     }
                 }
-                
-                // Debug output every second
-                static unsigned long last_debug = 0;
-                if (current_time - last_debug >= 1000) {
-                    last_debug = current_time;
-                    Serial.print("FlashBulb fade progress: ");
-                    Serial.print((elapsed * 100) / 5000);
-                    Serial.println("%");
+
+                uint16_t strip_length = strip_lengths[strip_id];
+
+                // Ensure black at transition start
+                for (uint16_t led = 0; led < strip_length; led++) {
+                    pin_configs[pin_index].led_array[strip_start_offset + led] = CRGB::Black;
                 }
-            } else {
-                // Fade complete, start transition back
-                pattern->state = FLASHBULB_TRANSITION_BACK;
-                pattern->start_time = current_time;
-                
-                // Ensure LEDs are black at the start of transition back phase
-                for (uint8_t i = 0; i < pattern->num_target_strips; i++) {
-                    uint8_t strip_id = pattern->target_strips[i];
-                    if (strip_id >= 22) continue;
-                    
-                    uint8_t pin_index = strip_map[strip_id];
-                    uint16_t strip_start_offset = 0;
-                    
-                    // Calculate the starting LED position for this strip within the pin's LED array
-                    for (uint8_t s = 0; s < strip_id; s++) {
-                        if (strip_map[s] == pin_index) {
-                            strip_start_offset += strip_lengths[s];
-                        }
-                    }
-                    
-                    uint16_t strip_length = strip_lengths[strip_id];
-                    
-                    // Ensure black at transition start
-                    for (uint16_t led = 0; led < strip_length; led++) {
-                        pin_configs[pin_index].led_array[strip_start_offset + led] = CRGB::Black;
-                    }
-                }
-                
-                Serial.println("FlashBulb: Starting transition back to chase pattern");
             }
-            break;
-            
-        case FLASHBULB_TRANSITION_BACK:
-            if (elapsed < 2000) { // 2 second transition back
-                uint8_t transition_amount = (elapsed * 255) / 2000;
-                
-                // During transition back, we blend from black to whatever the chase patterns 
-                // have already set (since chase patterns run BEFORE FlashBulb in the main loop)
-                for (uint8_t i = 0; i < pattern->num_target_strips; i++) {
-                    uint8_t strip_id = pattern->target_strips[i];
-                    if (strip_id >= 22) continue;
-                    
-                    uint8_t pin_index = strip_map[strip_id];
-                    uint16_t strip_start_offset = 0;
-                    
-                    // Calculate the starting LED position for this strip within the pin's LED array
-                    for (uint8_t s = 0; s < strip_id; s++) {
-                        if (strip_map[s] == pin_index) {
-                            strip_start_offset += strip_lengths[s];
-                        }
-                    }
-                    
-                    uint16_t strip_length = strip_lengths[strip_id];
-                    
-                    // Blend from black to the current chase pattern colors
-                    for (uint16_t led = 0; led < strip_length; led++) {
-                        // Get the current color that the chase pattern set
-                        CRGB current_chase_color = pin_configs[pin_index].led_array[strip_start_offset + led];
-                        CRGB black = CRGB::Black;
-                        
-                        // Blend from black to the current chase pattern color based on transition progress
-                        pin_configs[pin_index].led_array[strip_start_offset + led] = black.lerp8(current_chase_color, transition_amount);
+
+            Serial.println("FlashBulb: Starting transition back to chase pattern");
+        }
+        break;
+
+    case FLASHBULB_TRANSITION_BACK:
+        if (elapsed < 2000) { // 2 second transition back
+            uint8_t transition_amount = (elapsed * 255) / 2000;
+
+            // During transition back, we blend from black to whatever the chase patterns
+            // have already set (since chase patterns run BEFORE FlashBulb in the main loop)
+            for (uint8_t i = 0; i < pattern->num_target_strips; i++) {
+                uint8_t strip_id = pattern->target_strips[i];
+                if (strip_id >= 22)
+                    continue;
+
+                uint8_t pin_index = strip_map[strip_id];
+                uint16_t strip_start_offset = 0;
+
+                // Calculate the starting LED position for this strip within the pin's LED array
+                for (uint8_t s = 0; s < strip_id; s++) {
+                    if (strip_map[s] == pin_index) {
+                        strip_start_offset += strip_lengths[s];
                     }
                 }
-                
-                // Debug output
-                static unsigned long last_debug2 = 0;
-                if (current_time - last_debug2 >= 500) {
-                    last_debug2 = current_time;
-                    Serial.print("FlashBulb transition progress: ");
-                    Serial.print((elapsed * 100) / 2000);
-                    Serial.println("%");
+
+                uint16_t strip_length = strip_lengths[strip_id];
+
+                // Blend from black to the current chase pattern colors
+                for (uint16_t led = 0; led < strip_length; led++) {
+                    // Get the current color that the chase pattern set
+                    CRGB current_chase_color = pin_configs[pin_index].led_array[strip_start_offset + led];
+                    CRGB black = CRGB::Black;
+
+                    // Blend from black to the current chase pattern color based on transition progress
+                    pin_configs[pin_index].led_array[strip_start_offset + led]
+                        = black.lerp8(current_chase_color, transition_amount);
                 }
-            } else {
-                // Transition complete, return to inactive
-                pattern->state = FLASHBULB_INACTIVE;
-                Serial.println("FlashBulb: Effect complete, returning to normal patterns");
             }
-            break;
-            
-        default:
-            break;
+
+            // Debug output
+            static unsigned long last_debug2 = 0;
+            if (current_time - last_debug2 >= 500) {
+                last_debug2 = current_time;
+                Serial.print("FlashBulb transition progress: ");
+                Serial.print((elapsed * 100) / 2000);
+                Serial.println("%");
+            }
+        } else {
+            // Transition complete, return to inactive
+            pattern->state = FLASHBULB_INACTIVE;
+            Serial.println("FlashBulb: Effect complete, returning to normal patterns");
+        }
+        break;
+
+    default:
+        break;
     }
 }
