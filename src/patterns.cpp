@@ -58,6 +58,17 @@ void updatePatternQueue()
         return;
 
     unsigned long elapsed_time = current_time - pattern_queue.queue_start_time;
+    
+    // Find the maximum transition delay to know when to loop
+    unsigned long max_delay = 0;
+    for (uint8_t i = 0; i < pattern_queue.queue_size; i++) {
+        if (pattern_queue.patterns[i].transition_delay > max_delay) {
+            max_delay = pattern_queue.patterns[i].transition_delay;
+        }
+    }
+    
+    // Add some time after the last pattern starts before looping (e.g., 5 seconds)
+    unsigned long loop_time = max_delay + 5000;
 
     // Check each pattern to see if it should start based on its transition delay
     for (uint8_t i = 0; i < pattern_queue.queue_size; i++) {
@@ -68,6 +79,17 @@ void updatePatternQueue()
             pattern.is_active = true;
             pattern.last_update = current_time;
             pattern.chase_position = 0;
+        }
+    }
+    
+    // Loop the queue when enough time has passed
+    if (elapsed_time >= loop_time) {
+        // Reset the queue start time to create a loop
+        pattern_queue.queue_start_time = current_time;
+        
+        // Reset all patterns to inactive so they can start again
+        for (uint8_t i = 0; i < pattern_queue.queue_size; i++) {
+            pattern_queue.patterns[i].is_active = false;
         }
     }
 }
