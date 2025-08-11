@@ -21,14 +21,16 @@ struct ChasePattern {
     uint8_t target_strips[MAX_TARGET_STRIPS];
     uint8_t num_target_strips;
     uint16_t speed;
-    unsigned long duration;
+    unsigned long transition_delay;
+    unsigned long last_update;
+    uint16_t chase_position;
+    bool is_active;
 };
 
 struct PatternQueue {
     ChasePattern patterns[MAX_QUEUE_SIZE];
     uint8_t queue_size;
-    uint8_t current_pattern;
-    unsigned long pattern_start_time;
+    unsigned long queue_start_time;
     bool is_running;
 };
 
@@ -39,15 +41,16 @@ extern uint8_t strip_map[];
 extern PinConfig pin_configs[];
 
 // Pattern queue functions
-void addPatternToQueue(CRGB* palette, uint8_t palette_size, uint8_t* target_strips, uint8_t num_target_strips, uint16_t speed, unsigned long duration);
+void addPatternToQueue(CRGB* palette, uint8_t palette_size, uint8_t* target_strips, uint8_t num_target_strips, uint16_t speed, unsigned long transition_delay);
 void startPatternQueue();
 void stopPatternQueue();
 void clearPatternQueue();
 void updatePatternQueue();
 void runQueuedChasePattern();
 
-// Chase pattern function
+// Chase pattern functions
 void chasePattern(uint8_t* target_strips, uint8_t num_target_strips, CRGB* palette, uint8_t palette_size, uint16_t speed);
+void runChasePattern(ChasePattern* pattern);
 
 // Example program setup
 void setupPatternProgram();

@@ -1,9 +1,9 @@
 #include "patterns.h"
 
-PatternQueue pattern_queue = { .queue_size = 0, .current_pattern = 0, .pattern_start_time = 0, .is_running = false };
+PatternQueue pattern_queue = { .queue_size = 0, .queue_start_time = 0, .is_running = false };
 
 void addPatternToQueue(CRGB* palette, uint8_t palette_size, uint8_t* target_strips, uint8_t num_target_strips,
-    uint16_t speed, unsigned long duration)
+    uint16_t speed, unsigned long transition_delay)
 {
     if (pattern_queue.queue_size >= MAX_QUEUE_SIZE)
         return;
@@ -23,7 +23,10 @@ void addPatternToQueue(CRGB* palette, uint8_t palette_size, uint8_t* target_stri
     pattern.num_target_strips = num_target_strips;
 
     pattern.speed = speed;
-    pattern.duration = duration;
+    pattern.transition_delay = transition_delay;
+    pattern.last_update = 0;
+    pattern.chase_position = 0;
+    pattern.is_active = false;
 
     pattern_queue.queue_size++;
 }
@@ -31,9 +34,13 @@ void addPatternToQueue(CRGB* palette, uint8_t palette_size, uint8_t* target_stri
 void startPatternQueue()
 {
     if (pattern_queue.queue_size > 0) {
-        pattern_queue.current_pattern = 0;
-        pattern_queue.pattern_start_time = current_time;
+        pattern_queue.queue_start_time = current_time;
         pattern_queue.is_running = true;
+
+        // Initialize all patterns
+        for (uint8_t i = 0; i < pattern_queue.queue_size; i++) {
+            pattern_queue.patterns[i].is_active = false;
+        }
     }
 }
 
@@ -42,7 +49,6 @@ void stopPatternQueue() { pattern_queue.is_running = false; }
 void clearPatternQueue()
 {
     pattern_queue.queue_size = 0;
-    pattern_queue.current_pattern = 0;
     pattern_queue.is_running = false;
 }
 
@@ -51,22 +57,18 @@ void updatePatternQueue()
     if (!pattern_queue.is_running || pattern_queue.queue_size == 0)
         return;
 
-    ChasePattern& current = pattern_queue.patterns[pattern_queue.current_pattern];
-    unsigned long elapsed_time = current_time - pattern_queue.pattern_start_time;
+    unsigned long elapsed_time = current_time - pattern_queue.queue_start_time;
 
-    // Check if current pattern duration has elapsed
-    if (elapsed_time >= current.duration) {
-        // Move to next pattern
-        pattern_queue.current_pattern++;
+    // Check each pattern to see if it should start based on its transition delay
+    for (uint8_t i = 0; i < pattern_queue.queue_size; i++) {
+        ChasePattern& pattern = pattern_queue.patterns[i];
 
-        // Check if we've reached the end of the queue
-        if (pattern_queue.current_pattern >= pattern_queue.queue_size) {
-            // Loop back to beginning or stop (you can modify this behavior)
-            pattern_queue.current_pattern = 0;
+        // Check if transition delay has elapsed and pattern isn't already active
+        if (elapsed_time >= pattern.transition_delay && !pattern.is_active) {
+            pattern.is_active = true;
+            pattern.last_update = current_time;
+            pattern.chase_position = 0;
         }
-
-        // Reset start time for new pattern
-        pattern_queue.pattern_start_time = current_time;
     }
 }
 
@@ -77,9 +79,69 @@ void runQueuedChasePattern()
 
     updatePatternQueue();
 
-    ChasePattern& current = pattern_queue.patterns[pattern_queue.current_pattern];
-    chasePattern(
-        current.target_strips, current.num_target_strips, current.palette, current.palette_size, current.speed);
+    // Run all active patterns
+    bool any_pattern_updated = false;
+    for (uint8_t i = 0; i < pattern_queue.queue_size; i++) {
+        ChasePattern& pattern = pattern_queue.patterns[i];
+        if (pattern.is_active) {
+            runChasePattern(&pattern);
+            any_pattern_updated = true;
+        }
+    }
+
+    // Only call FastLED.show() once per frame if any patterns updated
+    if (any_pattern_updated) {
+        FastLED.show();
+    }
+}
+
+void runChasePattern(ChasePattern* pattern)
+{
+    if (current_time - pattern->last_update >= pattern->speed) {
+        pattern->last_update = current_time;
+
+        // Apply continuous chase pattern across all target strips
+        uint16_t global_led_position = 0;
+        for (uint8_t i = 0; i < pattern->num_target_strips; i++) {
+            uint8_t strip_id = pattern->target_strips[i];
+            if (strip_id >= 22)
+                continue; // Invalid strip ID
+
+            uint8_t pin_index = strip_map[strip_id];
+            uint16_t strip_start_offset = 0;
+
+            // Calculate the starting LED position for this strip within the pin's LED array
+            for (uint8_t s = 0; s < strip_id; s++) {
+                if (strip_map[s] == pin_index) {
+                    strip_start_offset += strip_lengths[s];
+                }
+            }
+
+            uint16_t strip_length = strip_lengths[strip_id];
+
+            // Apply chase pattern with blending across the strip
+            for (uint16_t led = 0; led < strip_length; led++) {
+                uint16_t pattern_position
+                    = (global_led_position + pattern->chase_position) % (pattern->palette_size * 10);
+                uint8_t color_index = pattern_position / 10;
+                uint8_t blend_amount = (pattern_position % 10) * 25; // 0-250 blend amount
+
+                if (color_index < pattern->palette_size) {
+                    CRGB current_color = pattern->palette[color_index];
+                    CRGB next_color = pattern->palette[(color_index + 1) % pattern->palette_size];
+
+                    // Blend between current and next color
+                    CRGB blended_color = current_color.lerp8(next_color, blend_amount);
+                    pin_configs[pin_index].led_array[strip_start_offset + led] = blended_color;
+                }
+
+                global_led_position++;
+            }
+        }
+
+        // Advance chase position
+        pattern->chase_position = (pattern->chase_position + 1) % (pattern->palette_size * 10);
+    }
 }
 
 void chasePattern(
@@ -90,15 +152,6 @@ void chasePattern(
 
     if (current_time - last_update >= speed) {
         last_update = current_time;
-
-        // Calculate total length of all target strips
-        uint16_t total_pattern_length = 0;
-        for (uint8_t i = 0; i < num_target_strips; i++) {
-            uint8_t strip_id = target_strips[i];
-            if (strip_id < 22) {
-                total_pattern_length += strip_lengths[strip_id];
-            }
-        }
 
         // Apply continuous chase pattern across all target strips
         uint16_t global_led_position = 0;
@@ -163,10 +216,10 @@ void setupPatternProgram()
     static uint8_t exterior_rings[] = { 0, 1, 2, 11, 12, 13 };
 
     // Add patterns to queue with different durations and speeds
-    addPatternToQueue(warm_palette, 3, all_strips, 22, 50, 10000); // 10 seconds - warm colors on all strips
+    addPatternToQueue(warm_palette, 3, all_strips, 22, 50, 0); // 10 seconds - warm colors on all strips
+    addPatternToQueue(sunset_palette, 4, exterior_rings, 6, 80, 6000); // 6 seconds - sunset colors on corners, slower
     addPatternToQueue(cool_palette, 3, outside, 14, 30, 8000); // 8 seconds - cool colors on first half, faster
     addPatternToQueue(rainbow_palette, 6, inside, 8, 40, 12000); // 12 seconds - rainbow on second half
-    addPatternToQueue(sunset_palette, 4, exterior_rings, 6, 80, 6000); // 6 seconds - sunset colors on corners, slower
     addPatternToQueue(rainbow_palette, 6, all_strips, 22, 25, 15000); // 15 seconds - fast rainbow on all strips
 
     // Start the pattern program
