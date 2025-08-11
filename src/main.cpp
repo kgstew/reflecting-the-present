@@ -38,6 +38,12 @@ uint8_t strip_map[] = { 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5,
 // Pre-calculated strip offsets for performance (calculated once at startup)
 uint16_t strip_offsets[22];
 
+// Strip direction configuration (true = forward, false = reverse)
+bool strip_directions[22] = {
+    true, false, true, true, true, true, true, true, true, true, true, // strips 0-10 forward
+    true, true, true, true, true, true, true, true, true, true, true // strips 11-21 forward
+};
+
 unsigned long current_time;
 
 // WiFi and WebSocket configuration

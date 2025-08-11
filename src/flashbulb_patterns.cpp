@@ -226,12 +226,13 @@ void runFlashBulbPattern(FlashBulbPattern* pattern)
 
                 // Blend from black to the current chase pattern colors
                 for (uint16_t led = 0; led < strip_length; led++) {
+                    uint16_t directional_led = getDirectionalLedIndex(strip_id, led);
                     // Get the current color that the chase pattern set
-                    CRGB current_chase_color = pin_configs[pin_index].led_array[strip_start_offset + led];
+                    CRGB current_chase_color = pin_configs[pin_index].led_array[strip_start_offset + directional_led];
                     CRGB black = CRGB::Black;
 
                     // Blend from black to the current chase pattern color based on transition progress
-                    pin_configs[pin_index].led_array[strip_start_offset + led]
+                    pin_configs[pin_index].led_array[strip_start_offset + directional_led]
                         = black.lerp8(current_chase_color, transition_amount);
                 }
             }

@@ -48,7 +48,8 @@ void runSingleChasePattern(ChasePattern* pattern)
                         if (!pattern->is_active) {
                             // Transitioning in (fade in from existing color to chase pattern)
                             uint8_t transition_blend = (transition_elapsed * 255) / pattern->transition_duration;
-                            CRGB existing_color = pin_configs[pin_index].led_array[strip_start_offset + led];
+                            uint16_t directional_led = getDirectionalLedIndex(strip_id, led);
+                            CRGB existing_color = pin_configs[pin_index].led_array[strip_start_offset + directional_led];
                             final_color = existing_color.lerp8(final_color, transition_blend);
                         } else {
                             // Transitioning out (fade out to black)
@@ -58,7 +59,10 @@ void runSingleChasePattern(ChasePattern* pattern)
                     }
                 }
 
-                pin_configs[pin_index].led_array[strip_start_offset + led] = final_color;
+                // Get the directional LED index (supports forward/reverse)
+                uint16_t directional_led = getDirectionalLedIndex(strip_id, led);
+                
+                pin_configs[pin_index].led_array[strip_start_offset + directional_led] = final_color;
             }
         }
 

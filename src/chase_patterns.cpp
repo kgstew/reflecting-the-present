@@ -50,6 +50,7 @@ void runChasePatternLogic(ChasePattern* pattern)
                     = (global_led_position + pattern->chase_position) % (pattern->palette_size * 10);
                 uint8_t color_index = pattern_position / 10;
                 uint8_t blend_amount = (pattern_position % 10) * 25; // 0-250 blend amount
+                uint16_t directional_led = getDirectionalLedIndex(strip_id, led);
 
                 if (color_index < pattern->palette_size) {
                     CRGB current_color = pattern->palette[color_index];
@@ -93,14 +94,15 @@ void runChasePatternLogic(ChasePattern* pattern)
                                     // Transitioning in (fade in)
                                     uint8_t transition_blend
                                         = (transition_elapsed * 255) / pattern->transition_duration;
-                                    CRGB existing_color = pin_configs[pin_index].led_array[strip_start_offset + led];
+                                    CRGB existing_color
+                                        = pin_configs[pin_index].led_array[strip_start_offset + directional_led];
                                     blended_color = existing_color.lerp8(blended_color, transition_blend);
                                 }
                             }
                         }
                     }
 
-                    pin_configs[pin_index].led_array[strip_start_offset + led] = blended_color;
+                    pin_configs[pin_index].led_array[strip_start_offset + directional_led] = blended_color;
                 }
 
                 global_led_position++;
@@ -112,9 +114,7 @@ void runChasePatternLogic(ChasePattern* pattern)
     }
 }
 
-
-void chasePattern(
-    uint8_t* target_strips, uint8_t num_target_strips, CRGB* palette, uint8_t palette_size, uint8_t speed)
+void chasePattern(uint8_t* target_strips, uint8_t num_target_strips, CRGB* palette, uint8_t palette_size, uint8_t speed)
 {
     static unsigned long last_update = 0;
     static uint16_t chase_position = 0;
@@ -147,7 +147,11 @@ void chasePattern(
 
                     // Blend between current and next color
                     CRGB blended_color = current_color.lerp8(next_color, blend_amount);
-                    pin_configs[pin_index].led_array[strip_start_offset + led] = blended_color;
+
+                    // Get the directional LED index (supports forward/reverse)
+                    uint16_t directional_led = getDirectionalLedIndex(strip_id, led);
+
+                    pin_configs[pin_index].led_array[strip_start_offset + directional_led] = blended_color;
                 }
 
                 global_led_position++;

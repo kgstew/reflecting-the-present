@@ -72,6 +72,7 @@ extern unsigned long current_time;
 extern uint16_t strip_lengths[];
 extern uint8_t strip_map[];
 extern uint16_t strip_offsets[];
+extern bool strip_directions[];
 extern PinConfig pin_configs[];
 
 // External references to pattern managers
@@ -80,6 +81,9 @@ extern FlashBulbManager flashbulb_manager;
 
 // Performance optimization
 void calculateStripOffsets();
+
+// Strip direction helper
+uint16_t getDirectionalLedIndex(uint8_t strip_id, uint16_t led_index);
 
 // Universal speed conversion (1=slowest, 100=fastest)
 unsigned long convertSpeedToDelay(uint8_t speed);

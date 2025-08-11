@@ -20,6 +20,18 @@ void calculateStripOffsets()
     }
 }
 
+uint16_t getDirectionalLedIndex(uint8_t strip_id, uint16_t led_index)
+{
+    // Return the actual LED index based on strip direction
+    if (strip_directions[strip_id]) {
+        // Forward direction - use index as-is
+        return led_index;
+    } else {
+        // Reverse direction - flip the index
+        return (strip_lengths[strip_id] - 1) - led_index;
+    }
+}
+
 unsigned long convertSpeedToDelay(uint8_t speed)
 {
     // Clamp speed to valid range
