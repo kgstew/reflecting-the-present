@@ -25,6 +25,9 @@ struct ChasePattern {
     unsigned long last_update;
     uint16_t chase_position;
     bool is_active;
+    bool is_transitioning;
+    unsigned long transition_start_time;
+    uint16_t transition_duration;
 };
 
 struct PatternQueue {
@@ -41,7 +44,7 @@ extern uint8_t strip_map[];
 extern PinConfig pin_configs[];
 
 // Pattern queue functions
-void addPatternToQueue(CRGB* palette, uint8_t palette_size, uint8_t* target_strips, uint8_t num_target_strips, uint16_t speed, unsigned long transition_delay);
+void addPatternToQueue(CRGB* palette, uint8_t palette_size, uint8_t* target_strips, uint8_t num_target_strips, uint16_t speed, unsigned long transition_delay, uint16_t transition_duration = 1000);
 void startPatternQueue();
 void stopPatternQueue();
 void clearPatternQueue();

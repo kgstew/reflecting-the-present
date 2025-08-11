@@ -3,7 +3,7 @@
 PatternQueue pattern_queue = { .queue_size = 0, .queue_start_time = 0, .is_running = false };
 
 void addPatternToQueue(CRGB* palette, uint8_t palette_size, uint8_t* target_strips, uint8_t num_target_strips,
-    uint16_t speed, unsigned long transition_delay)
+    uint16_t speed, unsigned long transition_delay, uint16_t transition_duration)
 {
     if (pattern_queue.queue_size >= MAX_QUEUE_SIZE)
         return;
@@ -27,6 +27,9 @@ void addPatternToQueue(CRGB* palette, uint8_t palette_size, uint8_t* target_stri
     pattern.last_update = 0;
     pattern.chase_position = 0;
     pattern.is_active = false;
+    pattern.is_transitioning = false;
+    pattern.transition_start_time = 0;
+    pattern.transition_duration = transition_duration;
 
     pattern_queue.queue_size++;
 }
@@ -40,6 +43,7 @@ void startPatternQueue()
         // Initialize all patterns
         for (uint8_t i = 0; i < pattern_queue.queue_size; i++) {
             pattern_queue.patterns[i].is_active = false;
+            pattern_queue.patterns[i].is_transitioning = false;
         }
     }
 }
@@ -58,7 +62,7 @@ void updatePatternQueue()
         return;
 
     unsigned long elapsed_time = current_time - pattern_queue.queue_start_time;
-    
+
     // Find the maximum transition delay to know when to loop
     unsigned long max_delay = 0;
     for (uint8_t i = 0; i < pattern_queue.queue_size; i++) {
@@ -66,7 +70,7 @@ void updatePatternQueue()
             max_delay = pattern_queue.patterns[i].transition_delay;
         }
     }
-    
+
     // Add some time after the last pattern starts before looping (e.g., 5 seconds)
     unsigned long loop_time = max_delay + 5000;
 
@@ -75,21 +79,61 @@ void updatePatternQueue()
         ChasePattern& pattern = pattern_queue.patterns[i];
 
         // Check if transition delay has elapsed and pattern isn't already active
-        if (elapsed_time >= pattern.transition_delay && !pattern.is_active) {
-            pattern.is_active = true;
+        if (elapsed_time >= pattern.transition_delay && !pattern.is_active && !pattern.is_transitioning) {
+            // Start transition for new pattern
+            pattern.is_transitioning = true;
+            pattern.transition_start_time = current_time;
             pattern.last_update = current_time;
             pattern.chase_position = 0;
+
+            // Mark any existing patterns on these strips as transitioning out
+            for (uint8_t j = 0; j < pattern_queue.queue_size; j++) {
+                if (j != i && pattern_queue.patterns[j].is_active) {
+                    ChasePattern& existing_pattern = pattern_queue.patterns[j];
+
+                    // Check if patterns share any strips
+                    bool shares_strips = false;
+                    for (uint8_t k = 0; k < pattern.num_target_strips; k++) {
+                        for (uint8_t l = 0; l < existing_pattern.num_target_strips; l++) {
+                            if (pattern.target_strips[k] == existing_pattern.target_strips[l]) {
+                                shares_strips = true;
+                                break;
+                            }
+                        }
+                        if (shares_strips)
+                            break;
+                    }
+
+                    if (shares_strips && !existing_pattern.is_transitioning) {
+                        existing_pattern.is_transitioning = true;
+                        existing_pattern.transition_start_time = current_time;
+                    }
+                }
+            }
+        }
+
+        // Update transition state
+        if (pattern.is_transitioning) {
+            unsigned long transition_elapsed = current_time - pattern.transition_start_time;
+            if (transition_elapsed >= pattern.transition_duration) {
+                // Transition complete
+                pattern.is_transitioning = false;
+                if (!pattern.is_active) {
+                    pattern.is_active = true;
+                }
+            }
         }
     }
-    
+
     // Loop the queue when enough time has passed
     if (elapsed_time >= loop_time) {
         // Reset the queue start time to create a loop
         pattern_queue.queue_start_time = current_time;
-        
+
         // Reset all patterns to inactive so they can start again
         for (uint8_t i = 0; i < pattern_queue.queue_size; i++) {
             pattern_queue.patterns[i].is_active = false;
+            pattern_queue.patterns[i].is_transitioning = false;
         }
     }
 }
@@ -101,11 +145,11 @@ void runQueuedChasePattern()
 
     updatePatternQueue();
 
-    // Run all active patterns
+    // Run all active or transitioning patterns
     bool any_pattern_updated = false;
     for (uint8_t i = 0; i < pattern_queue.queue_size; i++) {
         ChasePattern& pattern = pattern_queue.patterns[i];
-        if (pattern.is_active) {
+        if (pattern.is_active || pattern.is_transitioning) {
             runChasePattern(&pattern);
             any_pattern_updated = true;
         }
@@ -152,8 +196,28 @@ void runChasePattern(ChasePattern* pattern)
                     CRGB current_color = pattern->palette[color_index];
                     CRGB next_color = pattern->palette[(color_index + 1) % pattern->palette_size];
 
-                    // Blend between current and next color
+                    // Blend between current and next color in palette
                     CRGB blended_color = current_color.lerp8(next_color, blend_amount);
+
+                    // Apply transition blending
+                    if (pattern->is_transitioning) {
+                        unsigned long transition_elapsed = current_time - pattern->transition_start_time;
+                        uint8_t transition_blend = 255;
+
+                        if (transition_elapsed < pattern->transition_duration) {
+                            if (pattern->is_active) {
+                                // Transitioning out (fade out)
+                                transition_blend = 255 - (transition_elapsed * 255) / pattern->transition_duration;
+                                blended_color.fadeToBlackBy(255 - transition_blend);
+                            } else {
+                                // Transitioning in (fade in)
+                                transition_blend = (transition_elapsed * 255) / pattern->transition_duration;
+                                CRGB existing_color = pin_configs[pin_index].led_array[strip_start_offset + led];
+                                blended_color = existing_color.lerp8(blended_color, transition_blend);
+                            }
+                        }
+                    }
+
                     pin_configs[pin_index].led_array[strip_start_offset + led] = blended_color;
                 }
 
@@ -241,7 +305,7 @@ void setupPatternProgram()
     addPatternToQueue(warm_palette, 3, all_strips, 22, 50, 0); // 10 seconds - warm colors on all strips
     addPatternToQueue(sunset_palette, 4, exterior_rings, 6, 80, 6000); // 6 seconds - sunset colors on corners, slower
     addPatternToQueue(cool_palette, 3, outside, 14, 30, 8000); // 8 seconds - cool colors on first half, faster
-    addPatternToQueue(rainbow_palette, 6, inside, 8, 40, 12000); // 12 seconds - rainbow on second half
+    addPatternToQueue(warm_palette, 6, inside, 8, 40, 12000); // 12 seconds - rainbow on second half
     addPatternToQueue(rainbow_palette, 6, all_strips, 22, 25, 15000); // 15 seconds - fast rainbow on all strips
 
     // Start the pattern program
