@@ -37,9 +37,7 @@ void startPatternQueue()
     }
 }
 
-void stopPatternQueue() { 
-    pattern_queue.is_running = false; 
-}
+void stopPatternQueue() { pattern_queue.is_running = false; }
 
 void clearPatternQueue()
 {
@@ -160,15 +158,15 @@ void setupPatternProgram()
 
     // Define target strip groups
     static uint8_t all_strips[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 };
-    static uint8_t first_half[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-    static uint8_t second_half[] = { 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 };
-    static uint8_t corners[] = { 0, 5, 11, 16, 21 };
+    static uint8_t outside[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
+    static uint8_t inside[] = { 14, 15, 16, 17, 18, 19, 20, 21 };
+    static uint8_t exterior_rings[] = { 0, 1, 2, 11, 12, 13 };
 
     // Add patterns to queue with different durations and speeds
     addPatternToQueue(warm_palette, 3, all_strips, 22, 50, 10000); // 10 seconds - warm colors on all strips
-    addPatternToQueue(cool_palette, 3, first_half, 11, 30, 8000); // 8 seconds - cool colors on first half, faster
-    addPatternToQueue(rainbow_palette, 6, second_half, 11, 40, 12000); // 12 seconds - rainbow on second half
-    addPatternToQueue(sunset_palette, 4, corners, 5, 80, 6000); // 6 seconds - sunset colors on corners, slower
+    addPatternToQueue(cool_palette, 3, outside, 14, 30, 8000); // 8 seconds - cool colors on first half, faster
+    addPatternToQueue(rainbow_palette, 6, inside, 8, 40, 12000); // 12 seconds - rainbow on second half
+    addPatternToQueue(sunset_palette, 4, exterior_rings, 6, 80, 6000); // 6 seconds - sunset colors on corners, slower
     addPatternToQueue(rainbow_palette, 6, all_strips, 22, 25, 15000); // 15 seconds - fast rainbow on all strips
 
     // Start the pattern program
