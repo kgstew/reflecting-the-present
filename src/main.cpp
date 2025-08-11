@@ -293,5 +293,5 @@ void loop()
     demoFlashBulb();
 
     // Run the queued pattern program
-    runQueuedChasePattern();
+    runQueuedPattern();
 }

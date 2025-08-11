@@ -13,12 +13,12 @@ unsigned long convertSpeedToDelay(uint8_t speed)
     // Convert 1-100 scale to delay in milliseconds
     // For single chase to traverse 122 LEDs in 1 second at speed 100:
     // 1000ms / 122 positions = ~8ms per position
-    // Speed 1 = 200ms delay (slowest, ~24 seconds to cross strip)  
+    // Speed 1 = 200ms delay (slowest, ~24 seconds to cross strip)
     // Speed 100 = 8ms delay (fastest, ~1 second to cross strip)
-    
+
     // Target: 122ms total to cross 122-LED strip at speed 100
     // This means 1ms per LED position at max speed
-    // Speed 1 = 20ms per LED (slowest, ~2.44 seconds to cross strip)  
+    // Speed 1 = 20ms per LED (slowest, ~2.44 seconds to cross strip)
     // Speed 100 = 1ms per LED (fastest, ~122ms to cross strip)
     // Linear interpolation: delay = 20 - ((speed - 1) * (20 - 1) / 99)
     return 20 - ((speed - 1) * 19 / 99);
@@ -162,7 +162,7 @@ void updatePatternQueue()
     }
 }
 
-void runQueuedChasePattern()
+void runQueuedPattern()
 {
     if (!pattern_queue.is_running || pattern_queue.queue_size == 0)
         return;
@@ -243,15 +243,15 @@ void runPattern(ChasePattern* pattern)
 {
     // Dispatch to appropriate pattern function based on type
     switch (pattern->pattern_type) {
-        case PATTERN_SOLID:
-            runSolidPattern(pattern);
-            break;
-        case PATTERN_SINGLE_CHASE:
-            runSingleChasePattern(pattern);
-            break;
-        case PATTERN_CHASE:
-        default:
-            runChasePatternLogic(pattern);
-            break;
+    case PATTERN_SOLID:
+        runSolidPattern(pattern);
+        break;
+    case PATTERN_SINGLE_CHASE:
+        runSingleChasePattern(pattern);
+        break;
+    case PATTERN_CHASE:
+    default:
+        runChasePatternLogic(pattern);
+        break;
     }
 }

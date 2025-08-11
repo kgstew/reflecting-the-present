@@ -26,18 +26,9 @@ struct StripGroupConfig {
     uint8_t count;
 };
 
-enum FlashBulbState {
-    FLASHBULB_INACTIVE,
-    FLASHBULB_FLASH,
-    FLASHBULB_FADE_TO_BLACK,
-    FLASHBULB_TRANSITION_BACK
-};
+enum FlashBulbState { FLASHBULB_INACTIVE, FLASHBULB_FLASH, FLASHBULB_FADE_TO_BLACK, FLASHBULB_TRANSITION_BACK };
 
-enum PatternType {
-    PATTERN_CHASE,
-    PATTERN_SOLID,
-    PATTERN_SINGLE_CHASE
-};
+enum PatternType { PATTERN_CHASE, PATTERN_SOLID, PATTERN_SINGLE_CHASE };
 
 struct ChasePattern {
     PatternType pattern_type;
@@ -90,18 +81,21 @@ extern FlashBulbManager flashbulb_manager;
 unsigned long convertSpeedToDelay(uint8_t speed);
 
 // Pattern queue functions
-void addPatternToQueue(PatternType pattern_type, const PaletteConfig& palette_config, const StripGroupConfig& strip_config, uint8_t speed, unsigned long transition_delay, uint16_t transition_duration = 1000);
+void addPatternToQueue(PatternType pattern_type, const PaletteConfig& palette_config,
+    const StripGroupConfig& strip_config, uint8_t speed, unsigned long transition_delay,
+    uint16_t transition_duration = 1000);
 void startPatternQueue();
 void stopPatternQueue();
 void clearPatternQueue();
 void updatePatternQueue();
-void runQueuedChasePattern();
+void runQueuedPattern();
 
 // Main pattern handler
 void runPattern(ChasePattern* pattern);
 
 // Chase pattern functions
-void chasePattern(uint8_t* target_strips, uint8_t num_target_strips, CRGB* palette, uint8_t palette_size, uint8_t speed);
+void chasePattern(
+    uint8_t* target_strips, uint8_t num_target_strips, CRGB* palette, uint8_t palette_size, uint8_t speed);
 void runChasePatternLogic(ChasePattern* pattern);
 bool isStripActiveInFlashBulb(uint8_t strip_id);
 
