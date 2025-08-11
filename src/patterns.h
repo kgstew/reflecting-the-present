@@ -76,6 +76,7 @@ extern uint8_t strip_map[];
 extern PinConfig pin_configs[];
 
 // External references to pattern managers
+extern PatternQueue pattern_queue;
 extern FlashBulbManager flashbulb_manager;
 
 // Pattern queue functions
@@ -89,6 +90,7 @@ void runQueuedChasePattern();
 // Chase pattern functions
 void chasePattern(uint8_t* target_strips, uint8_t num_target_strips, CRGB* palette, uint8_t palette_size, uint16_t speed);
 void runChasePattern(ChasePattern* pattern);
+bool isStripActiveInFlashBulb(uint8_t strip_id);
 
 // FlashBulb pattern functions
 void initFlashBulbManager();
