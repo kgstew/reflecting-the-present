@@ -43,9 +43,47 @@ struct StripState {
     PatternType previous_pattern;
     ColorPalette previous_palette;
     uint16_t previous_chase_speed;
+    // Transition state
+    bool is_transitioning;
+    PatternType transition_target;
+    ColorPalette transition_palette;
+    uint16_t transition_chase_speed;
+    uint32_t transition_start_time;
+    uint32_t transition_duration;
+    float fade_progress; // 0.0-1.0 for smooth transitions
+};
+
+struct PatternTransition {
+    uint8_t* strip_ids;
+    uint8_t strip_count;
+    PatternType target_pattern;
+    ColorPalette palette;
+    uint16_t chase_speed;
+    uint16_t fade_duration_ms;
+    uint32_t duration; // How long the target pattern should run (0 = infinite)
+};
+
+class TransitionManager {
+public:
+    static void init();
+    static void queueTransition(uint8_t* strip_ids, uint8_t strip_count, PatternType target_pattern, 
+                               ColorPalette palette, uint16_t chase_speed = 50, 
+                               uint16_t fade_duration_ms = 1000, uint32_t duration = 0);
+    static void update(uint32_t current_time);
+    static bool isTransitioning(uint8_t strip_id);
+    static void checkForExpiredPatterns(uint32_t current_time);
+
+private:
+    static void startTransition(uint8_t strip_id, PatternType target_pattern, 
+                               ColorPalette palette, uint16_t chase_speed, 
+                               uint16_t fade_duration_ms, uint32_t current_time);
+    static void updateTransition(uint8_t strip_id, uint32_t current_time);
+    static void completeTransition(uint8_t strip_id, uint32_t duration);
 };
 
 class StripPatternManager {
+    friend class TransitionManager; // Allow TransitionManager to access private members
+
 public:
     static void init(uint8_t total_strips);
     static void setStripPattern(uint8_t strip_id, PatternType pattern, CRGB color = CRGB::White, uint32_t duration = 0);

@@ -10,6 +10,8 @@ StripState* StripPatternManager::strip_states = nullptr;
 uint8_t StripPatternManager::total_strip_count = 0;
 uint32_t StripPatternManager::global_rainbow_time = 0;
 
+// TransitionManager has no static variables - it works directly with strip states
+
 // StripPatternManager implementation
 void StripPatternManager::init(uint8_t total_strips)
 {
@@ -34,6 +36,14 @@ void StripPatternManager::init(uint8_t total_strips)
         strip_states[i].previous_pattern = PATTERN_COLOR_CHASE;
         strip_states[i].previous_palette = strip_states[i].palette;
         strip_states[i].previous_chase_speed = 50;
+        // Initialize transition state
+        strip_states[i].is_transitioning = false;
+        strip_states[i].transition_target = PATTERN_COLOR_CHASE;
+        strip_states[i].transition_palette = strip_states[i].palette;
+        strip_states[i].transition_chase_speed = 50;
+        strip_states[i].transition_start_time = 0;
+        strip_states[i].transition_duration = 0;
+        strip_states[i].fade_progress = 0.0f;
     }
 }
 
@@ -184,12 +194,13 @@ void StripPatternManager::renderStrip(uint8_t strip_id, uint8_t pin, uint8_t str
 
         for (int led = 0; led < strip_length; led++) {
             uint16_t pattern_led = transformLedIndex(strip_id, led, strip_length);
+            CRGB final_color;
 
             if (palette.size == 0) {
                 // Fallback to rainbow if no palette
                 float hue_position = ((global_led_base + pattern_led) + chase_offset) * 360.0 / 256.0;
                 uint8_t hue = ((uint16_t)(hue_position + (global_rainbow_time / 50)) % 360) * 255 / 360;
-                led_array[led_offset + led] = CHSV(hue, 255, 255);
+                final_color = CHSV(hue, 255, 255);
             } else {
                 // Use palette colors
                 float position = ((global_led_base + pattern_led) + chase_offset) / 256.0f;
@@ -208,8 +219,53 @@ void StripPatternManager::renderStrip(uint8_t strip_id, uint8_t pin, uint8_t str
                 uint8_t g = color1.g + (blend * (color2.g - color1.g));
                 uint8_t b = color1.b + (blend * (color2.b - color1.b));
 
-                led_array[led_offset + led] = CRGB(r, g, b);
+                final_color = CRGB(r, g, b);
             }
+
+            // Apply transition blending if transitioning
+            if (strip_states[strip_id].is_transitioning) {
+                // Calculate what the target pattern color should be
+                CRGB target_color;
+                const ColorPalette& target_palette = strip_states[strip_id].transition_palette;
+                const uint16_t target_speed_setting = strip_states[strip_id].transition_chase_speed;
+                const float target_chase_speed = (target_speed_setting == 0) ? 0.0f : (101.0f - target_speed_setting);
+                float target_chase_offset = (target_chase_speed == 0.0f) ? 0.0f : (global_rainbow_time / target_chase_speed);
+
+                if (target_palette.size == 0) {
+                    // Target rainbow fallback
+                    float hue_position = ((global_led_base + pattern_led) + target_chase_offset) * 360.0 / 256.0;
+                    uint8_t hue = ((uint16_t)(hue_position + (global_rainbow_time / 50)) % 360) * 255 / 360;
+                    target_color = CHSV(hue, 255, 255);
+                } else {
+                    // Target palette-based
+                    float position = ((global_led_base + pattern_led) + target_chase_offset) / 256.0f;
+                    position = fmod(position + (global_rainbow_time / 5000.0f), 1.0f);
+
+                    float palette_position = position * target_palette.size;
+                    uint8_t palette_index = (uint8_t)palette_position % target_palette.size;
+                    uint8_t next_index = (palette_index + 1) % target_palette.size;
+                    float blend = palette_position - palette_index;
+
+                    CRGB color1 = target_palette.colors[palette_index];
+                    CRGB color2 = target_palette.colors[next_index];
+
+                    uint8_t r = color1.r + (blend * (color2.r - color1.r));
+                    uint8_t g = color1.g + (blend * (color2.g - color1.g));
+                    uint8_t b = color1.b + (blend * (color2.b - color1.b));
+
+                    target_color = CRGB(r, g, b);
+                }
+
+                // Blend between current and target
+                float fade_progress = strip_states[strip_id].fade_progress;
+                uint8_t final_r = final_color.r + (fade_progress * (target_color.r - final_color.r));
+                uint8_t final_g = final_color.g + (fade_progress * (target_color.g - final_color.g));
+                uint8_t final_b = final_color.b + (fade_progress * (target_color.b - final_color.b));
+
+                final_color = CRGB(final_r, final_g, final_b);
+            }
+
+            led_array[led_offset + led] = final_color;
         }
         break;
     }
@@ -256,13 +312,14 @@ void StripPatternManager::renderStrip(uint8_t strip_id, uint8_t pin, uint8_t str
             const ColorPalette& previous_palette = strip_states[strip_id].previous_palette;
             const uint16_t previous_speed_setting = strip_states[strip_id].previous_chase_speed;
             const float previous_chase_speed = (previous_speed_setting == 0) ? 0.0f : (101.0f - previous_speed_setting);
-            float previous_chase_offset = (previous_chase_speed == 0.0f) ? 0.0f : (global_rainbow_time / previous_chase_speed);
+            float previous_chase_offset
+                = (previous_chase_speed == 0.0f) ? 0.0f : (global_rainbow_time / previous_chase_speed);
             uint16_t global_led_base = getGlobalLedBase(strip_id);
 
             for (int led = 0; led < strip_length; led++) {
                 uint16_t pattern_led = transformLedIndex(strip_id, led, strip_length);
                 CRGB target_color;
-                
+
                 // Calculate what the previous pattern color should be
                 if (previous_palette.size == 0) {
                     // Previous was rainbow fallback
@@ -273,44 +330,44 @@ void StripPatternManager::renderStrip(uint8_t strip_id, uint8_t pin, uint8_t str
                     // Previous was palette-based
                     float position = ((global_led_base + pattern_led) + previous_chase_offset) / 256.0f;
                     position = fmod(position + (global_rainbow_time / 5000.0f), 1.0f);
-                    
+
                     float palette_position = position * previous_palette.size;
                     uint8_t palette_index = (uint8_t)palette_position % previous_palette.size;
                     uint8_t next_index = (palette_index + 1) % previous_palette.size;
                     float blend = palette_position - palette_index;
-                    
+
                     CRGB color1 = previous_palette.colors[palette_index];
                     CRGB color2 = previous_palette.colors[next_index];
-                    
+
                     uint8_t r = color1.r + (blend * (color2.r - color1.r));
                     uint8_t g = color1.g + (blend * (color2.g - color1.g));
                     uint8_t b = color1.b + (blend * (color2.b - color1.b));
-                    
+
                     target_color = CRGB(r, g, b);
                 }
-                
+
                 // Blend between dim white (51 brightness) and the target color
                 CRGB dim_white = CRGB(51, 51, 51);
                 uint8_t final_r = dim_white.r + (fade_progress * (target_color.r - dim_white.r));
                 uint8_t final_g = dim_white.g + (fade_progress * (target_color.g - dim_white.g));
                 uint8_t final_b = dim_white.b + (fade_progress * (target_color.b - dim_white.b));
-                
+
                 led_array[led_offset + led] = CRGB(final_r, final_g, final_b);
             }
         }
         break;
     }
 
-    case PATTERN_PINWHEEL: {
-        for (int led = 0; led < strip_length; led++) {
-            float x, y;
-            getLedMatrixPosition(strip_id, led, x, y);
-            CRGB color = getPinwheelColor(x, y, pattern_time, strip_states[strip_id].palette);
-            uint16_t pattern_led = transformLedIndex(strip_id, led, strip_length);
-            led_array[led_offset + pattern_led] = color;
-        }
-        break;
-    }
+        // case PATTERN_PINWHEEL: {
+        //     for (int led = 0; led < strip_length; led++) {
+        //         float x, y;
+        //         getLedMatrixPosition(strip_id, led, x, y);
+        //         CRGB color = getPinwheelColor(x, y, pattern_time, strip_states[strip_id].palette);
+        //         uint16_t pattern_led = transformLedIndex(strip_id, led, strip_length);
+        //         led_array[led_offset + pattern_led] = color;
+        //     }
+        //     break;
+        // }
 
     default:
         break;
@@ -414,7 +471,7 @@ void StripPatternManager::getLedMatrixPosition(uint8_t strip_id, uint16_t led_in
     // Calculate LED position based on strip orientation
     uint16_t strip_length = strip_lengths[strip_id];
     float strip_center = (strip_length - 1) / 2.0f;
-    
+
     if (strip_id <= 13) {
         // Vertical strips (pins 1-4)
         x = center_x;
@@ -477,4 +534,99 @@ uint16_t StripPatternManager::getGlobalLedBase(uint8_t strip_id)
         base += strip_lengths[i];
     }
     return base;
+}
+
+// TransitionManager implementation - simpler approach using pattern durations
+void TransitionManager::init()
+{
+    // No initialization needed - works directly with strip states
+}
+
+void TransitionManager::queueTransition(uint8_t* strip_ids, uint8_t strip_count, PatternType target_pattern, 
+                                       ColorPalette palette, uint16_t chase_speed, 
+                                       uint16_t fade_duration_ms, uint32_t duration)
+{
+    uint32_t current_time = millis();
+    
+    for (int i = 0; i < strip_count; i++) {
+        uint8_t strip_id = strip_ids[i];
+        if (strip_id >= StripPatternManager::total_strip_count) continue;
+        
+        startTransition(strip_id, target_pattern, palette, chase_speed, fade_duration_ms, current_time);
+        
+        // Set the target duration for the new pattern
+        StripPatternManager::strip_states[strip_id].duration = duration;
+    }
+}
+
+void TransitionManager::update(uint32_t current_time)
+{
+    // Update ongoing transitions
+    for (int strip_id = 0; strip_id < StripPatternManager::total_strip_count; strip_id++) {
+        if (StripPatternManager::strip_states[strip_id].is_transitioning) {
+            updateTransition(strip_id, current_time);
+        }
+    }
+}
+
+void TransitionManager::checkForExpiredPatterns(uint32_t current_time)
+{
+    // This function can be used to trigger automatic transitions when patterns expire
+    // For now, it's just a placeholder for future functionality
+}
+
+void TransitionManager::startTransition(uint8_t strip_id, PatternType target_pattern, 
+                                       ColorPalette palette, uint16_t chase_speed, 
+                                       uint16_t fade_duration_ms, uint32_t current_time)
+{
+    StripState& state = StripPatternManager::strip_states[strip_id];
+    
+    // Set up transition
+    state.is_transitioning = true;
+    state.transition_target = target_pattern;
+    state.transition_palette = palette;
+    state.transition_chase_speed = chase_speed;
+    state.transition_start_time = current_time;
+    state.transition_duration = fade_duration_ms;
+    state.fade_progress = 0.0f;
+}
+
+void TransitionManager::updateTransition(uint8_t strip_id, uint32_t current_time)
+{
+    StripState& state = StripPatternManager::strip_states[strip_id];
+    
+    if (!state.is_transitioning) return;
+    
+    uint32_t elapsed = current_time - state.transition_start_time;
+    
+    if (elapsed >= state.transition_duration) {
+        // Transition complete - apply the new pattern with its duration
+        completeTransition(strip_id, state.duration);
+    } else {
+        // Update fade progress
+        state.fade_progress = (float)elapsed / state.transition_duration;
+        if (state.fade_progress > 1.0f) state.fade_progress = 1.0f;
+    }
+}
+
+void TransitionManager::completeTransition(uint8_t strip_id, uint32_t duration)
+{
+    StripState& state = StripPatternManager::strip_states[strip_id];
+    
+    // Apply the target pattern
+    state.pattern = state.transition_target;
+    state.palette = state.transition_palette;
+    state.chase_speed = state.transition_chase_speed;
+    state.start_time = millis();
+    state.duration = duration; // Set the duration for the new pattern
+    
+    // Clear transition state
+    state.is_transitioning = false;
+    state.fade_progress = 0.0f;
+}
+
+bool TransitionManager::isTransitioning(uint8_t strip_id)
+{
+    if (strip_id >= StripPatternManager::total_strip_count) return false;
+    return StripPatternManager::strip_states[strip_id].is_transitioning;
 }
