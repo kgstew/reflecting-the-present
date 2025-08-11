@@ -23,7 +23,7 @@ void addPatternToQueue(const PaletteConfig& palette_config, const StripGroupConf
     pattern.num_target_strips = strip_config.count;
 
     pattern.speed = speed;
-    pattern.transition_delay = transition_delay;
+    pattern.transition_delay = transition_delay * 1000; // Convert seconds to milliseconds
     pattern.last_update = 0;
     pattern.chase_position = 0;
     pattern.is_active = false;
@@ -197,12 +197,12 @@ void setupPatternProgram()
 
     static StripGroupConfig exterior_rings = { { 0, 1, 2, 11, 12, 13 }, 6 };
 
-    // Add patterns to queue with different durations and speeds
-    addPatternToQueue(rainbow_palette, all_strips, 50, 0); // Rainbow on all strips
-    addPatternToQueue(sunset_palette, exterior_rings, 80, 10000); // Sunset on exterior rings
-    addPatternToQueue(cool_palette, inside, 30, 14000); // Cool colors on inside strips
-    addPatternToQueue(warm_palette, outside, 40, 20000); // Warm colors on outside strips
-    addPatternToQueue(cool_palette, all_strips, 25, 30000); // Fast cool colors on all strips
+    // Add patterns to queue with different transition delays (in seconds) and speeds
+    addPatternToQueue(rainbow_palette, all_strips, 50, 0); // Rainbow on all strips - starts immediately
+    addPatternToQueue(sunset_palette, exterior_rings, 80, 10); // Sunset on exterior rings - starts after 10 seconds
+    addPatternToQueue(cool_palette, inside, 30, 14); // Cool colors on inside strips - starts after 14 seconds
+    addPatternToQueue(warm_palette, outside, 40, 20); // Warm colors on outside strips - starts after 20 seconds
+    addPatternToQueue(cool_palette, all_strips, 25, 30); // Fast cool colors on all strips - starts after 30 seconds
 
     // Start the pattern program
     startPatternQueue();
