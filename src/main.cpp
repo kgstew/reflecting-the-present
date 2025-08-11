@@ -37,7 +37,9 @@ PinConfig pin_configs[NUM_PINS]
 
 uint8_t strip_map[] = { 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5 };
 
-void chasePattern(uint8_t* target_strips, uint8_t num_target_strips, CRGB* palette, uint8_t palette_size, uint16_t speed, unsigned long current_time) {
+unsigned long current_time;
+
+void chasePattern(uint8_t* target_strips, uint8_t num_target_strips, CRGB* palette, uint8_t palette_size, uint16_t speed) {
     static unsigned long last_update = 0;
     static uint16_t chase_position = 0;
     
@@ -135,9 +137,11 @@ void setup()
 }
 
 void loop() {
+    current_time = millis();
+    
     // Example usage of chase pattern
     static CRGB palette[] = {CRGB::Red, CRGB::Green, CRGB::Blue, CRGB::Yellow};
     static uint8_t target_strips[] = {0, 1, 2, 3}; // First 4 strips
     
-    chasePattern(target_strips, 4, palette, 4, 50, millis());
+    chasePattern(target_strips, 4, palette, 4, 50);
 }
