@@ -3,25 +3,25 @@
 PatternQueue pattern_queue = { .queue_size = 0, .queue_start_time = 0, .is_running = false };
 FlashBulbManager flashbulb_manager = { .pattern_count = 0 };
 
-void addPatternToQueue(CRGB* palette, uint8_t palette_size, uint8_t* target_strips, uint8_t num_target_strips,
-    uint16_t speed, unsigned long transition_delay, uint16_t transition_duration)
+void addPatternToQueue(const PaletteConfig& palette_config, const StripGroupConfig& strip_config, uint16_t speed,
+    unsigned long transition_delay, uint16_t transition_duration)
 {
     if (pattern_queue.queue_size >= MAX_QUEUE_SIZE)
         return;
 
     ChasePattern& pattern = pattern_queue.patterns[pattern_queue.queue_size];
 
-    // Copy palette
-    for (uint8_t i = 0; i < palette_size && i < MAX_PALETTE_SIZE; i++) {
-        pattern.palette[i] = palette[i];
+    // Copy palette from config
+    for (uint8_t i = 0; i < palette_config.size && i < MAX_PALETTE_SIZE; i++) {
+        pattern.palette[i] = palette_config.colors[i];
     }
-    pattern.palette_size = palette_size;
+    pattern.palette_size = palette_config.size;
 
-    // Copy target strips
-    for (uint8_t i = 0; i < num_target_strips && i < MAX_TARGET_STRIPS; i++) {
-        pattern.target_strips[i] = target_strips[i];
+    // Copy target strips from config
+    for (uint8_t i = 0; i < strip_config.count && i < MAX_TARGET_STRIPS; i++) {
+        pattern.target_strips[i] = strip_config.strips[i];
     }
-    pattern.num_target_strips = num_target_strips;
+    pattern.num_target_strips = strip_config.count;
 
     pattern.speed = speed;
     pattern.transition_delay = transition_delay;
@@ -324,24 +324,32 @@ void setupPatternProgram()
     // Clear any existing patterns
     clearPatternQueue();
 
-    // Define some palettes
-    static CRGB warm_palette[] = { CRGB::Red, CRGB::Orange, CRGB::Yellow };
-    static CRGB cool_palette[] = { CRGB::Blue, CRGB::Cyan, CRGB::Green };
-    static CRGB rainbow_palette[] = { CRGB::Red, CRGB::Orange, CRGB::Yellow, CRGB::Green, CRGB::Blue, CRGB::Purple };
-    static CRGB sunset_palette[] = { CRGB::Purple, CRGB::Magenta, CRGB::Orange, CRGB::Red };
+    // Define palette configurations
+    static PaletteConfig warm_palette = { { CRGB::Red, CRGB::Orange, CRGB::Yellow }, 3 };
 
-    // Define target strip groups
-    static uint8_t all_strips[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 };
-    static uint8_t outside[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
-    static uint8_t inside[] = { 14, 15, 16, 17, 18, 19, 20, 21 };
-    static uint8_t exterior_rings[] = { 0, 1, 2, 11, 12, 13 };
+    static PaletteConfig cool_palette = { { CRGB::Blue, CRGB::Cyan, CRGB::Green }, 3 };
+
+    static PaletteConfig rainbow_palette
+        = { { CRGB::Red, CRGB::Orange, CRGB::Yellow, CRGB::Green, CRGB::Blue, CRGB::Purple }, 6 };
+
+    static PaletteConfig sunset_palette = { { CRGB::Purple, CRGB::Magenta, CRGB::Orange, CRGB::Red }, 4 };
+
+    // Define strip group configurations
+    static StripGroupConfig all_strips
+        = { { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 }, 22 };
+
+    static StripGroupConfig outside = { { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }, 14 };
+
+    static StripGroupConfig inside = { { 14, 15, 16, 17, 18, 19, 20, 21 }, 8 };
+
+    static StripGroupConfig exterior_rings = { { 0, 1, 2, 11, 12, 13 }, 6 };
 
     // Add patterns to queue with different durations and speeds
-    addPatternToQueue(rainbow_palette, 3, all_strips, 22, 50, 0); // 10 seconds - warm colors on all strips
-    addPatternToQueue(sunset_palette, 4, exterior_rings, 6, 80, 6000); // 6 seconds - sunset colors on corners, slower
-    addPatternToQueue(cool_palette, 3, inside, 14, 30, 8000); // 8 seconds - cool colors on first half, faster
-    addPatternToQueue(warm_palette, 6, outside, 8, 40, 12000); // 12 seconds - rainbow on second half
-    addPatternToQueue(cool_palette, 6, all_strips, 22, 25, 15000); // 15 seconds - fast rainbow on all strips
+    addPatternToQueue(rainbow_palette, all_strips, 50, 0); // Rainbow on all strips
+    addPatternToQueue(sunset_palette, exterior_rings, 80, 10000); // Sunset on exterior rings
+    addPatternToQueue(cool_palette, inside, 30, 14000); // Cool colors on inside strips
+    addPatternToQueue(warm_palette, outside, 40, 20000); // Warm colors on outside strips
+    addPatternToQueue(cool_palette, all_strips, 25, 30000); // Fast cool colors on all strips
 
     // Start the pattern program
     startPatternQueue();

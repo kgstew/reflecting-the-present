@@ -16,6 +16,16 @@ struct PinConfig {
 #define MAX_TARGET_STRIPS 22
 #define MAX_FLASHBULB_PATTERNS 5
 
+struct PaletteConfig {
+    CRGB colors[MAX_PALETTE_SIZE];
+    uint8_t size;
+};
+
+struct StripGroupConfig {
+    uint8_t strips[MAX_TARGET_STRIPS];
+    uint8_t count;
+};
+
 enum FlashBulbState {
     FLASHBULB_INACTIVE,
     FLASHBULB_FLASH,
@@ -69,7 +79,7 @@ extern PinConfig pin_configs[];
 extern FlashBulbManager flashbulb_manager;
 
 // Pattern queue functions
-void addPatternToQueue(CRGB* palette, uint8_t palette_size, uint8_t* target_strips, uint8_t num_target_strips, uint16_t speed, unsigned long transition_delay, uint16_t transition_duration = 1000);
+void addPatternToQueue(const PaletteConfig& palette_config, const StripGroupConfig& strip_config, uint16_t speed, unsigned long transition_delay, uint16_t transition_duration = 1000);
 void startPatternQueue();
 void stopPatternQueue();
 void clearPatternQueue();

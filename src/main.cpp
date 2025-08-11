@@ -1,11 +1,11 @@
 #include "patterns.h"
 #include <Arduino.h>
-#include <FastLED.h>
-#include <WiFi.h>
+#include <Arduino_JSON.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
-#include <Arduino_JSON.h>
+#include <FastLED.h>
 #include <WebSocketsServer.h>
+#include <WiFi.h>
 
 #define BRIGHTNESS 255
 #define LED_TYPE WS2812B
@@ -58,9 +58,9 @@ struct SensorMapping {
 
 SensorMapping sensor_mappings[MAX_SENSORS] = {
     // Add your sensor mappings here manually
-    {1, {0, 1, 2}, 3, true, 0},           // Sensor 1 -> strips 0,1,2
-    {2, {5, 6}, 2, true, 0},              // Sensor 2 -> strips 5,6
-    {3, {10, 11, 12, 13}, 4, true, 0},    // Sensor 3 -> strips 10,11,12,13
+    { 1, { 0, 1, 2 }, 3, true, 0 }, // Sensor 1 -> strips 0,1,2
+    { 2, { 5, 6 }, 2, true, 0 }, // Sensor 2 -> strips 5,6
+    { 3, { 10, 11, 12, 13 }, 4, true, 0 }, // Sensor 3 -> strips 10,11,12,13
     // Add more mappings as needed
 };
 
@@ -69,68 +69,69 @@ void handleSensorMessage(String message);
 void setupWiFiAndWebSocket();
 
 // WebSocket event handler
-void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
-    switch(type) {
-        case WStype_DISCONNECTED:
-            Serial.printf("[%u] Disconnected!\n", num);
-            break;
-            
-        case WStype_CONNECTED:
-            {
-                IPAddress ip = webSocket.remoteIP(num);
-                Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
-            }
-            break;
-            
-        case WStype_TEXT:
-            Serial.printf("[%u] Received: %s\n", num, payload);
-            handleSensorMessage((char*)payload);
-            break;
-            
-        default:
-            break;
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length)
+{
+    switch (type) {
+    case WStype_DISCONNECTED:
+        Serial.printf("[%u] Disconnected!\n", num);
+        break;
+
+    case WStype_CONNECTED: {
+        IPAddress ip = webSocket.remoteIP(num);
+        Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
+    } break;
+
+    case WStype_TEXT:
+        Serial.printf("[%u] Received: %s\n", num, payload);
+        handleSensorMessage((char*)payload);
+        break;
+
+    default:
+        break;
     }
 }
 
 // Handle incoming sensor messages
-void handleSensorMessage(String message) {
+void handleSensorMessage(String message)
+{
     JSONVar json = JSON.parse(message);
-    
+
     if (JSON.typeof(json) == "undefined") {
         Serial.println("Failed to parse JSON");
         return;
     }
-    
+
     if (json.hasOwnProperty("sensorId") && json.hasOwnProperty("timestamp")) {
         int sensor_id = (int)json["sensorId"];
         unsigned long timestamp = (unsigned long)json["timestamp"];
-        
+
         Serial.print("Sensor message received - ID: ");
         Serial.print(sensor_id);
         Serial.print(", Timestamp: ");
         Serial.println(timestamp);
-        
+
         // Find the sensor mapping
         for (uint8_t i = 0; i < MAX_SENSORS; i++) {
             if (sensor_mappings[i].active && sensor_mappings[i].sensor_id == sensor_id) {
                 // Check if enough time has passed since last trigger (15 seconds = 15000ms)
                 unsigned long time_since_last = current_time - sensor_mappings[i].last_trigger_time;
-                
+
                 if (sensor_mappings[i].last_trigger_time == 0 || time_since_last >= 15000) {
                     // Update last trigger time
                     sensor_mappings[i].last_trigger_time = current_time;
-                    
+
                     // Trigger FlashBulb on mapped strips
                     addFlashBulbPattern(sensor_mappings[i].led_strips, sensor_mappings[i].num_strips);
                     uint8_t pattern_index = flashbulb_manager.pattern_count - 1;
                     triggerFlashBulb(pattern_index);
-                    
+
                     Serial.print("FlashBulb triggered on ");
                     Serial.print(sensor_mappings[i].num_strips);
                     Serial.print(" strips: ");
                     for (uint8_t j = 0; j < sensor_mappings[i].num_strips; j++) {
                         Serial.print(sensor_mappings[i].led_strips[j]);
-                        if (j < sensor_mappings[i].num_strips - 1) Serial.print(", ");
+                        if (j < sensor_mappings[i].num_strips - 1)
+                            Serial.print(", ");
                     }
                     Serial.println();
                 } else {
@@ -142,7 +143,7 @@ void handleSensorMessage(String message) {
                     Serial.print(wait_time / 1000);
                     Serial.println(" more seconds");
                 }
-                
+
                 break;
             }
         }
@@ -150,32 +151,34 @@ void handleSensorMessage(String message) {
 }
 
 // Setup WiFi Access Point and WebSocket server
-void setupWiFiAndWebSocket() {
+void setupWiFiAndWebSocket()
+{
     // Set up WiFi Access Point
     WiFi.softAP(ssid, password);
     IPAddress IP = WiFi.softAPIP();
     Serial.print("AP IP address: ");
     Serial.println(IP);
-    
+
     // Setup WebSocket server
     webSocket.begin();
     webSocket.onEvent(webSocketEvent);
     Serial.println("WebSocket server started on port 81");
-    
+
     // Setup basic web server
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
         String html = "<!DOCTYPE html><html><head><title>Reflecting The Present</title></head><body>";
         html += "<h1>Reflecting The Present - LED Control</h1>";
         html += "<p>WebSocket server running on port 81</p>";
         html += "<p>Send JSON messages with format: {\"sensorId\": 1, \"timestamp\": 1234567890}</p>";
         html += "<h2>Sensor Mappings:</h2><ul>";
-        
+
         for (uint8_t i = 0; i < MAX_SENSORS; i++) {
             if (sensor_mappings[i].active) {
                 html += "<li>Sensor " + String(sensor_mappings[i].sensor_id) + " -> Strips: ";
                 for (uint8_t j = 0; j < sensor_mappings[i].num_strips; j++) {
                     html += String(sensor_mappings[i].led_strips[j]);
-                    if (j < sensor_mappings[i].num_strips - 1) html += ", ";
+                    if (j < sensor_mappings[i].num_strips - 1)
+                        html += ", ";
                 }
                 html += "</li>";
             }
@@ -183,7 +186,7 @@ void setupWiFiAndWebSocket() {
         html += "</ul></body></html>";
         request->send(200, "text/html", html);
     });
-    
+
     server.begin();
     Serial.println("HTTP server started on port 80");
 }
@@ -229,10 +232,10 @@ void setup()
 
     // Initialize FlashBulb system
     initFlashBulbManager();
-    
+
     // Setup WiFi Access Point and WebSocket server
     setupWiFiAndWebSocket();
-    
+
     Serial.println("=== System Ready ===");
     Serial.println("Connect to WiFi: ReflectingThePresent");
     Serial.println("Password: lightshow2024");
@@ -254,7 +257,7 @@ void demoFlashBulb()
             // Create random strip array
             uint8_t random_strips[5];
             for (uint8_t i = 0; i < num_random_strips; i++) {
-                random_strips[i] = random(0, 22); // Random strip 0-21
+                random_strips[i] = random(0, 13); // Random strip 0-21
             }
 
             // Add temporary FlashBulb pattern
