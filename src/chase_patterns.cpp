@@ -18,17 +18,8 @@ bool isStripActiveInFlashBulb(uint8_t strip_id)
     return false;
 }
 
-void runChasePattern(ChasePattern* pattern)
+void runChasePatternLogic(ChasePattern* pattern)
 {
-    // Dispatch to appropriate pattern function based on type
-    if (pattern->pattern_type == PATTERN_SOLID) {
-        runSolidPattern(pattern);
-        return;
-    } else if (pattern->pattern_type == PATTERN_SINGLE_CHASE) {
-        runSingleChasePattern(pattern);
-        return;
-    }
-
     // Continue with chase pattern logic for PATTERN_CHASE
     unsigned long speed_delay = convertSpeedToDelay(pattern->speed);
     if (current_time - pattern->last_update >= speed_delay) {
@@ -127,6 +118,7 @@ void runChasePattern(ChasePattern* pattern)
         pattern->chase_position = (pattern->chase_position + 1) % (pattern->palette_size * 10);
     }
 }
+
 
 void chasePattern(
     uint8_t* target_strips, uint8_t num_target_strips, CRGB* palette, uint8_t palette_size, uint8_t speed)

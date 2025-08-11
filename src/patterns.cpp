@@ -174,7 +174,7 @@ void runQueuedChasePattern()
     for (uint8_t i = 0; i < pattern_queue.queue_size; i++) {
         ChasePattern& pattern = pattern_queue.patterns[i];
         if (pattern.is_active || pattern.is_transitioning) {
-            runChasePattern(&pattern);
+            runPattern(&pattern);
             any_pattern_updated = true;
         }
     }
@@ -237,4 +237,21 @@ void setupPatternProgram()
 
     // Start the pattern program
     startPatternQueue();
+}
+
+void runPattern(ChasePattern* pattern)
+{
+    // Dispatch to appropriate pattern function based on type
+    switch (pattern->pattern_type) {
+        case PATTERN_SOLID:
+            runSolidPattern(pattern);
+            break;
+        case PATTERN_SINGLE_CHASE:
+            runSingleChasePattern(pattern);
+            break;
+        case PATTERN_CHASE:
+        default:
+            runChasePatternLogic(pattern);
+            break;
+    }
 }

@@ -97,9 +97,12 @@ void clearPatternQueue();
 void updatePatternQueue();
 void runQueuedChasePattern();
 
+// Main pattern handler
+void runPattern(ChasePattern* pattern);
+
 // Chase pattern functions
 void chasePattern(uint8_t* target_strips, uint8_t num_target_strips, CRGB* palette, uint8_t palette_size, uint8_t speed);
-void runChasePattern(ChasePattern* pattern);
+void runChasePatternLogic(ChasePattern* pattern);
 bool isStripActiveInFlashBulb(uint8_t strip_id);
 
 // Solid pattern functions
