@@ -20,6 +20,13 @@ bool isStripActiveInFlashBulb(uint8_t strip_id)
 
 void runChasePattern(ChasePattern* pattern)
 {
+    // Dispatch to appropriate pattern function based on type
+    if (pattern->pattern_type == PATTERN_SOLID) {
+        runSolidPattern(pattern);
+        return;
+    }
+
+    // Continue with chase pattern logic for PATTERN_CHASE
     if (current_time - pattern->last_update >= pattern->speed) {
         pattern->last_update = current_time;
 

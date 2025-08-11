@@ -2,7 +2,7 @@
 
 PatternQueue pattern_queue = { .queue_size = 0, .queue_start_time = 0, .is_running = false };
 
-void addPatternToQueue(const PaletteConfig& palette_config, const StripGroupConfig& strip_config, uint16_t speed,
+void addPatternToQueue(PatternType pattern_type, const PaletteConfig& palette_config, const StripGroupConfig& strip_config, uint16_t speed,
     unsigned long transition_delay, uint16_t transition_duration)
 {
     if (pattern_queue.queue_size >= MAX_QUEUE_SIZE)
@@ -10,6 +10,8 @@ void addPatternToQueue(const PaletteConfig& palette_config, const StripGroupConf
 
     ChasePattern& pattern = pattern_queue.patterns[pattern_queue.queue_size];
 
+    pattern.pattern_type = pattern_type;
+    
     // Copy palette from config
     for (uint8_t i = 0; i < palette_config.size && i < MAX_PALETTE_SIZE; i++) {
         pattern.palette[i] = palette_config.colors[i];
@@ -198,11 +200,11 @@ void setupPatternProgram()
     static StripGroupConfig exterior_rings = { { 0, 1, 2, 11, 12, 13 }, 6 };
 
     // Add patterns to queue with different transition delays (in seconds) and speeds
-    addPatternToQueue(rainbow_palette, all_strips, 50, 0); // Rainbow on all strips - starts immediately
-    addPatternToQueue(sunset_palette, exterior_rings, 80, 10); // Sunset on exterior rings - starts after 10 seconds
-    addPatternToQueue(cool_palette, inside, 30, 14); // Cool colors on inside strips - starts after 14 seconds
-    addPatternToQueue(warm_palette, outside, 40, 20); // Warm colors on outside strips - starts after 20 seconds
-    addPatternToQueue(cool_palette, all_strips, 25, 30); // Fast cool colors on all strips - starts after 30 seconds
+    addPatternToQueue(PATTERN_CHASE, rainbow_palette, all_strips, 50, 0); // Rainbow chase on all strips - starts immediately
+    addPatternToQueue(PATTERN_SOLID, sunset_palette, exterior_rings, 0, 10); // Solid sunset on exterior rings - starts after 10 seconds
+    addPatternToQueue(PATTERN_CHASE, cool_palette, inside, 30, 14); // Cool chase on inside strips - starts after 14 seconds
+    addPatternToQueue(PATTERN_SOLID, warm_palette, outside, 0, 20); // Solid warm colors on outside strips - starts after 20 seconds
+    addPatternToQueue(PATTERN_CHASE, cool_palette, all_strips, 25, 30); // Fast cool chase on all strips - starts after 30 seconds
 
     // Start the pattern program
     startPatternQueue();

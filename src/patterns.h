@@ -33,7 +33,13 @@ enum FlashBulbState {
     FLASHBULB_TRANSITION_BACK
 };
 
+enum PatternType {
+    PATTERN_CHASE,
+    PATTERN_SOLID
+};
+
 struct ChasePattern {
+    PatternType pattern_type;
     CRGB palette[MAX_PALETTE_SIZE];
     uint8_t palette_size;
     uint8_t target_strips[MAX_TARGET_STRIPS];
@@ -80,7 +86,7 @@ extern PatternQueue pattern_queue;
 extern FlashBulbManager flashbulb_manager;
 
 // Pattern queue functions
-void addPatternToQueue(const PaletteConfig& palette_config, const StripGroupConfig& strip_config, uint16_t speed, unsigned long transition_delay, uint16_t transition_duration = 1000);
+void addPatternToQueue(PatternType pattern_type, const PaletteConfig& palette_config, const StripGroupConfig& strip_config, uint16_t speed, unsigned long transition_delay, uint16_t transition_duration = 1000);
 void startPatternQueue();
 void stopPatternQueue();
 void clearPatternQueue();
@@ -91,6 +97,9 @@ void runQueuedChasePattern();
 void chasePattern(uint8_t* target_strips, uint8_t num_target_strips, CRGB* palette, uint8_t palette_size, uint16_t speed);
 void runChasePattern(ChasePattern* pattern);
 bool isStripActiveInFlashBulb(uint8_t strip_id);
+
+// Solid pattern functions
+void runSolidPattern(ChasePattern* pattern);
 
 // FlashBulb pattern functions
 void initFlashBulbManager();
