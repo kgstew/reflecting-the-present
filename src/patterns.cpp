@@ -491,6 +491,30 @@ void runFlashBulbPattern(FlashBulbPattern* pattern) {
                 // Fade complete, start transition back
                 pattern->state = FLASHBULB_TRANSITION_BACK;
                 pattern->start_time = current_time;
+                
+                // Ensure LEDs are black at the start of transition back phase
+                for (uint8_t i = 0; i < pattern->num_target_strips; i++) {
+                    uint8_t strip_id = pattern->target_strips[i];
+                    if (strip_id >= 22) continue;
+                    
+                    uint8_t pin_index = strip_map[strip_id];
+                    uint16_t strip_start_offset = 0;
+                    
+                    // Calculate the starting LED position for this strip within the pin's LED array
+                    for (uint8_t s = 0; s < strip_id; s++) {
+                        if (strip_map[s] == pin_index) {
+                            strip_start_offset += strip_lengths[s];
+                        }
+                    }
+                    
+                    uint16_t strip_length = strip_lengths[strip_id];
+                    
+                    // Ensure black at transition start
+                    for (uint16_t led = 0; led < strip_length; led++) {
+                        pin_configs[pin_index].led_array[strip_start_offset + led] = CRGB::Black;
+                    }
+                }
+                
                 Serial.println("FlashBulb: Starting transition back to chase pattern");
             }
             break;
