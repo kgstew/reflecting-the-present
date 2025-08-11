@@ -58,16 +58,45 @@ void runChasePatternLogic(ChasePattern* pattern)
                     // Blend between current and next color in palette
                     CRGB blended_color = current_color.lerp8(next_color, blend_amount);
 
-                    // Apply cached transition blending (calculated once per frame)
-                    if (pattern_queue.strip_transitions[strip_id].has_transition) {
-                        uint8_t transition_blend = pattern_queue.strip_transitions[strip_id].transition_blend;
-                        if (pattern_queue.strip_transitions[strip_id].is_fading_in) {
-                            // Transitioning in (fade in)
-                            CRGB existing_color = pin_configs[pin_index].led_array[strip_start_offset + led];
-                            blended_color = existing_color.lerp8(blended_color, transition_blend);
-                        } else {
-                            // Transitioning out (fade out)
-                            blended_color.fadeToBlackBy(255 - transition_blend);
+                    // Apply transition blending only if this strip is actually being changed
+                    if (pattern->is_transitioning) {
+                        // Check if there's an active pattern on this strip that's different from current pattern
+                        bool strip_has_transition = false;
+
+                        // Check if this strip is shared with other active patterns
+                        for (uint8_t p = 0; p < pattern_queue.queue_size; p++) {
+                            ChasePattern& other_pattern = pattern_queue.patterns[p];
+                            if (&other_pattern != pattern
+                                && (other_pattern.is_active || other_pattern.is_transitioning)) {
+                                // Check if this strip is in the other pattern
+                                for (uint8_t s = 0; s < other_pattern.num_target_strips; s++) {
+                                    if (other_pattern.target_strips[s] == strip_id) {
+                                        strip_has_transition = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (strip_has_transition)
+                                break;
+                        }
+
+                        if (strip_has_transition || !pattern->is_active) {
+                            unsigned long transition_elapsed = current_time - pattern->transition_start_time;
+
+                            if (transition_elapsed < pattern->transition_duration) {
+                                if (pattern->is_active) {
+                                    // Transitioning out (fade out)
+                                    uint8_t transition_blend
+                                        = 255 - (transition_elapsed * 255) / pattern->transition_duration;
+                                    blended_color.fadeToBlackBy(255 - transition_blend);
+                                } else {
+                                    // Transitioning in (fade in)
+                                    uint8_t transition_blend
+                                        = (transition_elapsed * 255) / pattern->transition_duration;
+                                    CRGB existing_color = pin_configs[pin_index].led_array[strip_start_offset + led];
+                                    blended_color = existing_color.lerp8(blended_color, transition_blend);
+                                }
+                            }
                         }
                     }
 

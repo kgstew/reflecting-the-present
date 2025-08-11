@@ -55,19 +55,11 @@ struct FlashBulbPattern {
     uint16_t saved_color_count;
 };
 
-struct StripTransitionState {
-    bool has_transition;
-    uint8_t transition_blend;
-    bool is_fading_in; // true = fading in, false = fading out
-};
-
 struct PatternQueue {
     ChasePattern patterns[MAX_QUEUE_SIZE];
     uint8_t queue_size;
     unsigned long queue_start_time;
     bool is_running;
-    // Cache transition states per strip for performance
-    StripTransitionState strip_transitions[22];
 };
 
 struct FlashBulbManager {
@@ -86,9 +78,8 @@ extern PinConfig pin_configs[];
 extern PatternQueue pattern_queue;
 extern FlashBulbManager flashbulb_manager;
 
-// Performance optimizations
+// Performance optimization
 void calculateStripOffsets();
-void calculateStripTransitions();
 
 // Universal speed conversion (1=slowest, 100=fastest)
 unsigned long convertSpeedToDelay(uint8_t speed);
