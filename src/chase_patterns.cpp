@@ -24,6 +24,9 @@ void runChasePattern(ChasePattern* pattern)
     if (pattern->pattern_type == PATTERN_SOLID) {
         runSolidPattern(pattern);
         return;
+    } else if (pattern->pattern_type == PATTERN_SINGLE_CHASE) {
+        runSingleChasePattern(pattern);
+        return;
     }
 
     // Continue with chase pattern logic for PATTERN_CHASE

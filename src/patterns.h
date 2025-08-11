@@ -35,7 +35,8 @@ enum FlashBulbState {
 
 enum PatternType {
     PATTERN_CHASE,
-    PATTERN_SOLID
+    PATTERN_SOLID,
+    PATTERN_SINGLE_CHASE
 };
 
 struct ChasePattern {
@@ -100,6 +101,9 @@ bool isStripActiveInFlashBulb(uint8_t strip_id);
 
 // Solid pattern functions
 void runSolidPattern(ChasePattern* pattern);
+
+// Single chase pattern functions
+void runSingleChasePattern(ChasePattern* pattern);
 
 // FlashBulb pattern functions
 void initFlashBulbManager();

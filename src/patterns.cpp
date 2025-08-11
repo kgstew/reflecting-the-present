@@ -202,9 +202,9 @@ void setupPatternProgram()
     // Add patterns to queue with different transition delays (in seconds) and speeds
     addPatternToQueue(PATTERN_CHASE, rainbow_palette, all_strips, 50, 0); // Rainbow chase on all strips - starts immediately
     addPatternToQueue(PATTERN_SOLID, sunset_palette, exterior_rings, 0, 10); // Solid sunset on exterior rings - starts after 10 seconds
-    addPatternToQueue(PATTERN_CHASE, cool_palette, inside, 30, 14); // Cool chase on inside strips - starts after 14 seconds
+    addPatternToQueue(PATTERN_SINGLE_CHASE, cool_palette, inside, 80, 14); // White single chase on inside strips - starts after 14 seconds
     addPatternToQueue(PATTERN_SOLID, warm_palette, outside, 0, 20); // Solid warm colors on outside strips - starts after 20 seconds
-    addPatternToQueue(PATTERN_CHASE, cool_palette, all_strips, 25, 30); // Fast cool chase on all strips - starts after 30 seconds
+    addPatternToQueue(PATTERN_SINGLE_CHASE, rainbow_palette, exterior_rings, 60, 30); // White single chase on exterior rings - starts after 30 seconds
 
     // Start the pattern program
     startPatternQueue();
