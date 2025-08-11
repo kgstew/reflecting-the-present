@@ -71,11 +71,15 @@ struct FlashBulbManager {
 extern unsigned long current_time;
 extern uint16_t strip_lengths[];
 extern uint8_t strip_map[];
+extern uint16_t strip_offsets[];
 extern PinConfig pin_configs[];
 
 // External references to pattern managers
 extern PatternQueue pattern_queue;
 extern FlashBulbManager flashbulb_manager;
+
+// Performance optimization
+void calculateStripOffsets();
 
 // Universal speed conversion (1=slowest, 100=fastest)
 unsigned long convertSpeedToDelay(uint8_t speed);

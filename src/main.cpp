@@ -35,6 +35,9 @@ PinConfig pin_configs[NUM_PINS]
 
 uint8_t strip_map[] = { 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5 };
 
+// Pre-calculated strip offsets for performance (calculated once at startup)
+uint16_t strip_offsets[22];
+
 unsigned long current_time;
 
 // WiFi and WebSocket configuration
@@ -226,6 +229,9 @@ void setup()
 
     Serial.printf("Total: %d LEDs across %d strips\n", total_leds, strip_index);
     Serial.println("Expected: 3+4+4+3+4+4 = 22 strips total");
+
+    // Calculate strip offsets for performance optimization
+    calculateStripOffsets();
 
     // Setup the pattern program
     setupPatternProgram();

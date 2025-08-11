@@ -2,6 +2,24 @@
 
 PatternQueue pattern_queue = { .queue_size = 0, .queue_start_time = 0, .is_running = false };
 
+void calculateStripOffsets()
+{
+    // Pre-calculate strip offsets for performance optimization
+    for (uint8_t strip_id = 0; strip_id < 22; strip_id++) {
+        uint8_t pin_index = strip_map[strip_id];
+        uint16_t offset = 0;
+        
+        // Calculate the starting LED position for this strip within the pin's LED array
+        for (uint8_t s = 0; s < strip_id; s++) {
+            if (strip_map[s] == pin_index) {
+                offset += strip_lengths[s];
+            }
+        }
+        
+        strip_offsets[strip_id] = offset;
+    }
+}
+
 unsigned long convertSpeedToDelay(uint8_t speed)
 {
     // Clamp speed to valid range

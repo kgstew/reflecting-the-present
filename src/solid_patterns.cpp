@@ -19,14 +19,7 @@ void runSolidPattern(ChasePattern* pattern)
         }
 
         uint8_t pin_index = strip_map[strip_id];
-        uint16_t strip_start_offset = 0;
-
-        // Calculate the starting LED position for this strip within the pin's LED array
-        for (uint8_t s = 0; s < strip_id; s++) {
-            if (strip_map[s] == pin_index) {
-                strip_start_offset += strip_lengths[s];
-            }
-        }
+        uint16_t strip_start_offset = strip_offsets[strip_id]; // Use pre-calculated offset
 
         uint16_t strip_length = strip_lengths[strip_id];
 
