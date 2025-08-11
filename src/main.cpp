@@ -33,6 +33,7 @@ uint8_t strip_map[] = { 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5,
 void setup()
 {
     Serial.begin(115200);
+    Serial.print("Connecting");
     delay(3000);
 
     FastLED.addLeds<LED_TYPE, PIN1, COLOR_ORDER>(pin1_leds, pin_configs[0].total_leds).setCorrection(TypicalLEDStrip);
