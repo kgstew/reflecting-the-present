@@ -30,7 +30,8 @@ void runChasePattern(ChasePattern* pattern)
     }
 
     // Continue with chase pattern logic for PATTERN_CHASE
-    if (current_time - pattern->last_update >= pattern->speed) {
+    unsigned long speed_delay = convertSpeedToDelay(pattern->speed);
+    if (current_time - pattern->last_update >= speed_delay) {
         pattern->last_update = current_time;
 
         // Apply continuous chase pattern across all target strips
@@ -128,12 +129,13 @@ void runChasePattern(ChasePattern* pattern)
 }
 
 void chasePattern(
-    uint8_t* target_strips, uint8_t num_target_strips, CRGB* palette, uint8_t palette_size, uint16_t speed)
+    uint8_t* target_strips, uint8_t num_target_strips, CRGB* palette, uint8_t palette_size, uint8_t speed)
 {
     static unsigned long last_update = 0;
     static uint16_t chase_position = 0;
 
-    if (current_time - last_update >= speed) {
+    unsigned long speed_delay = convertSpeedToDelay(speed);
+    if (current_time - last_update >= speed_delay) {
         last_update = current_time;
 
         // Apply continuous chase pattern across all target strips

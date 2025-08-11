@@ -45,7 +45,7 @@ struct ChasePattern {
     uint8_t palette_size;
     uint8_t target_strips[MAX_TARGET_STRIPS];
     uint8_t num_target_strips;
-    uint16_t speed;
+    uint8_t speed; // 1-100 scale (1=slowest, 100=fastest)
     unsigned long transition_delay;
     unsigned long last_update;
     uint16_t chase_position;
@@ -86,8 +86,11 @@ extern PinConfig pin_configs[];
 extern PatternQueue pattern_queue;
 extern FlashBulbManager flashbulb_manager;
 
+// Universal speed conversion (1=slowest, 100=fastest)
+unsigned long convertSpeedToDelay(uint8_t speed);
+
 // Pattern queue functions
-void addPatternToQueue(PatternType pattern_type, const PaletteConfig& palette_config, const StripGroupConfig& strip_config, uint16_t speed, unsigned long transition_delay, uint16_t transition_duration = 1000);
+void addPatternToQueue(PatternType pattern_type, const PaletteConfig& palette_config, const StripGroupConfig& strip_config, uint8_t speed, unsigned long transition_delay, uint16_t transition_duration = 1000);
 void startPatternQueue();
 void stopPatternQueue();
 void clearPatternQueue();
@@ -95,7 +98,7 @@ void updatePatternQueue();
 void runQueuedChasePattern();
 
 // Chase pattern functions
-void chasePattern(uint8_t* target_strips, uint8_t num_target_strips, CRGB* palette, uint8_t palette_size, uint16_t speed);
+void chasePattern(uint8_t* target_strips, uint8_t num_target_strips, CRGB* palette, uint8_t palette_size, uint8_t speed);
 void runChasePattern(ChasePattern* pattern);
 bool isStripActiveInFlashBulb(uint8_t strip_id);
 

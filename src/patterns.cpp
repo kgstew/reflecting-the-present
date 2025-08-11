@@ -2,8 +2,30 @@
 
 PatternQueue pattern_queue = { .queue_size = 0, .queue_start_time = 0, .is_running = false };
 
-void addPatternToQueue(PatternType pattern_type, const PaletteConfig& palette_config, const StripGroupConfig& strip_config, uint16_t speed,
-    unsigned long transition_delay, uint16_t transition_duration)
+unsigned long convertSpeedToDelay(uint8_t speed)
+{
+    // Clamp speed to valid range
+    if (speed < 1)
+        speed = 1;
+    if (speed > 100)
+        speed = 100;
+
+    // Convert 1-100 scale to delay in milliseconds
+    // For single chase to traverse 122 LEDs in 1 second at speed 100:
+    // 1000ms / 122 positions = ~8ms per position
+    // Speed 1 = 200ms delay (slowest, ~24 seconds to cross strip)  
+    // Speed 100 = 8ms delay (fastest, ~1 second to cross strip)
+    
+    // Target: 122ms total to cross 122-LED strip at speed 100
+    // This means 1ms per LED position at max speed
+    // Speed 1 = 20ms per LED (slowest, ~2.44 seconds to cross strip)  
+    // Speed 100 = 1ms per LED (fastest, ~122ms to cross strip)
+    // Linear interpolation: delay = 20 - ((speed - 1) * (20 - 1) / 99)
+    return 20 - ((speed - 1) * 19 / 99);
+}
+
+void addPatternToQueue(PatternType pattern_type, const PaletteConfig& palette_config,
+    const StripGroupConfig& strip_config, uint8_t speed, unsigned long transition_delay, uint16_t transition_duration)
 {
     if (pattern_queue.queue_size >= MAX_QUEUE_SIZE)
         return;
@@ -11,7 +33,7 @@ void addPatternToQueue(PatternType pattern_type, const PaletteConfig& palette_co
     ChasePattern& pattern = pattern_queue.patterns[pattern_queue.queue_size];
 
     pattern.pattern_type = pattern_type;
-    
+
     // Copy palette from config
     for (uint8_t i = 0; i < palette_config.size && i < MAX_PALETTE_SIZE; i++) {
         pattern.palette[i] = palette_config.colors[i];
@@ -180,6 +202,8 @@ void setupPatternProgram()
     clearPatternQueue();
 
     // Define palette configurations
+    static PaletteConfig white_palette = { { CRGB::White }, 1 };
+
     static PaletteConfig warm_palette = { { CRGB::Red, CRGB::Orange, CRGB::Yellow }, 3 };
 
     static PaletteConfig cool_palette = { { CRGB::Blue, CRGB::Cyan, CRGB::Green }, 3 };
@@ -199,12 +223,17 @@ void setupPatternProgram()
 
     static StripGroupConfig exterior_rings = { { 0, 1, 2, 11, 12, 13 }, 6 };
 
-    // Add patterns to queue with different transition delays (in seconds) and speeds
-    addPatternToQueue(PATTERN_CHASE, rainbow_palette, all_strips, 50, 0); // Rainbow chase on all strips - starts immediately
-    addPatternToQueue(PATTERN_SOLID, sunset_palette, exterior_rings, 0, 10); // Solid sunset on exterior rings - starts after 10 seconds
-    addPatternToQueue(PATTERN_SINGLE_CHASE, cool_palette, inside, 80, 14); // White single chase on inside strips - starts after 14 seconds
-    addPatternToQueue(PATTERN_SOLID, warm_palette, outside, 0, 20); // Solid warm colors on outside strips - starts after 20 seconds
-    addPatternToQueue(PATTERN_SINGLE_CHASE, rainbow_palette, exterior_rings, 60, 30); // White single chase on exterior rings - starts after 30 seconds
+    // Add patterns to queue with different transition delays (in seconds) and speeds (1-100 scale)
+    addPatternToQueue(PATTERN_CHASE, rainbow_palette, all_strips, 75,
+        0); // Rainbow chase on all strips - medium-fast speed - starts immediately
+    addPatternToQueue(PATTERN_SOLID, sunset_palette, exterior_rings, 1,
+        10); // Solid sunset on exterior rings - speed irrelevant - starts after 10 seconds
+    addPatternToQueue(PATTERN_SINGLE_CHASE, cool_palette, inside, 100,
+        14); // White single chase on inside strips - MAX SPEED - starts after 14 seconds
+    addPatternToQueue(PATTERN_SOLID, warm_palette, outside, 1,
+        20); // Solid warm colors on outside strips - speed irrelevant - starts after 20 seconds
+    addPatternToQueue(PATTERN_SINGLE_CHASE, rainbow_palette, exterior_rings, 100,
+        30); // White single chase on exterior rings - MAX SPEED - starts after 30 seconds
 
     // Start the pattern program
     startPatternQueue();

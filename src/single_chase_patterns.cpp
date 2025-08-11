@@ -4,12 +4,13 @@
 
 void runSingleChasePattern(ChasePattern* pattern)
 {
-    if (current_time - pattern->last_update >= pattern->speed) {
+    unsigned long speed_delay = convertSpeedToDelay(pattern->speed);
+    if (current_time - pattern->last_update >= speed_delay) {
         pattern->last_update = current_time;
 
         // Calculate which strip is currently active and position within that strip
         uint16_t strip_length = 122; // Assuming all strips are 122 LEDs
-        uint16_t total_chase_cycle = strip_length + SINGLE_CHASE_LENGTH; // Length + gap
+        uint16_t total_chase_cycle = strip_length + SINGLE_CHASE_LENGTH; // Length + gap (132 total)
         uint16_t current_strip_index = (pattern->chase_position / total_chase_cycle) % pattern->num_target_strips;
         uint16_t position_in_strip = pattern->chase_position % total_chase_cycle;
 
