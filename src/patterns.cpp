@@ -186,6 +186,9 @@ void runQueuedPattern()
         return;
 
     updatePatternQueue();
+    
+    // Calculate transition states once per frame for performance
+    calculateStripTransitions();
 
     // Run all active or transitioning chase patterns FIRST (to set base pattern)
     bool any_pattern_updated = false;
@@ -271,5 +274,49 @@ void runPattern(ChasePattern* pattern)
     default:
         runChasePatternLogic(pattern);
         break;
+    }
+}
+
+void calculateStripTransitions()
+{
+    // Clear all transition states
+    for (uint8_t strip = 0; strip < 22; strip++) {
+        pattern_queue.strip_transitions[strip].has_transition = false;
+        pattern_queue.strip_transitions[strip].transition_blend = 0;
+        pattern_queue.strip_transitions[strip].is_fading_in = true;
+    }
+    
+    // Calculate transition states for each active/transitioning pattern
+    for (uint8_t i = 0; i < pattern_queue.queue_size; i++) {
+        ChasePattern& pattern = pattern_queue.patterns[i];
+        
+        if (pattern.is_transitioning) {
+            unsigned long transition_elapsed = current_time - pattern.transition_start_time;
+            
+            if (transition_elapsed < pattern.transition_duration) {
+                uint8_t transition_blend;
+                bool is_fading_in;
+                
+                if (pattern.is_active) {
+                    // Transitioning out (fade out)
+                    transition_blend = 255 - (transition_elapsed * 255) / pattern.transition_duration;
+                    is_fading_in = false;
+                } else {
+                    // Transitioning in (fade in)
+                    transition_blend = (transition_elapsed * 255) / pattern.transition_duration;
+                    is_fading_in = true;
+                }
+                
+                // Apply transition state to all target strips for this pattern
+                for (uint8_t s = 0; s < pattern.num_target_strips; s++) {
+                    uint8_t strip_id = pattern.target_strips[s];
+                    if (strip_id < 22) {
+                        pattern_queue.strip_transitions[strip_id].has_transition = true;
+                        pattern_queue.strip_transitions[strip_id].transition_blend = transition_blend;
+                        pattern_queue.strip_transitions[strip_id].is_fading_in = is_fading_in;
+                    }
+                }
+            }
+        }
     }
 }
