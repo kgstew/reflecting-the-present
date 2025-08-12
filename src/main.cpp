@@ -12,12 +12,12 @@
 #define COLOR_ORDER GRB
 #define NUM_PINS 6
 
-#define PIN1 5
-#define PIN2 18
+#define PIN1 13
+#define PIN2 5
 #define PIN3 19
-#define PIN4 21
-#define PIN5 22
-#define PIN6 23
+#define PIN4 23
+#define PIN5 18
+#define PIN6 12
 
 uint16_t strip_lengths[]
     = { 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122 };
