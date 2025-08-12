@@ -1,6 +1,6 @@
 #include "patterns.h"
 
-void runChasePatternLogic(ChasePattern* pattern)
+void runChasePattern(ChasePattern* pattern)
 {
     // Update FastLED palette if pattern has changed
     updatePatternPalette(pattern);
@@ -12,6 +12,8 @@ void runChasePatternLogic(ChasePattern* pattern)
 
         // Apply continuous chase pattern across all target strips
         uint16_t global_led_position = 0;
+        const uint16_t STRIP_OFFSET = 10; // Internal offset between strips for better visual separation
+
         for (uint8_t i = 0; i < pattern->num_target_strips; i++) {
             uint8_t strip_id = pattern->target_strips[i];
             if (strip_id >= 22)
@@ -20,7 +22,7 @@ void runChasePatternLogic(ChasePattern* pattern)
             // Skip strips that are currently active in FlashBulb patterns
             if (isStripActiveInFlashBulb(strip_id)) {
                 // Still need to advance global_led_position for proper chase continuity
-                global_led_position += strips[strip_id].length;
+                global_led_position += strips[strip_id].length + STRIP_OFFSET;
                 continue;
             }
 
@@ -29,7 +31,7 @@ void runChasePatternLogic(ChasePattern* pattern)
 
             // Apply chase pattern using FastLED's ColorFromPalette for smooth blending
             for (uint16_t led = 0; led < strip_length; led++) {
-                // Calculate palette index based on position in the chase
+                // Calculate palette index based on position in the chase with strip offset
                 uint8_t palette_index
                     = ((global_led_position + pattern->chase_position) * 255) / (pattern->palette_size * 10);
 
@@ -78,57 +80,13 @@ void runChasePatternLogic(ChasePattern* pattern)
                 getStripLED(strip_id, led) = blended_color;
                 global_led_position++;
             }
+
+            // Add strip offset for better visual separation between strips
+            global_led_position += STRIP_OFFSET;
         }
 
         // Advance chase position - advance more positions for higher speeds to match rainbow pattern timing
-        uint8_t advance_step = (pattern->speed / 10) + 1;  // Speed 1-10 = 1 step, 11-20 = 2 steps, etc.
+        uint8_t advance_step = (pattern->speed / 10) + 1; // Speed 1-10 = 1 step, 11-20 = 2 steps, etc.
         pattern->chase_position = (pattern->chase_position + advance_step) % (pattern->palette_size * 10);
-    }
-}
-
-void chasePattern(uint8_t* target_strips, uint8_t num_target_strips, CRGB* palette, uint8_t palette_size, uint8_t speed)
-{
-    static unsigned long last_update = 0;
-    static uint16_t chase_position = 0;
-
-    unsigned long speed_delay = convertSpeedToDelay(speed);
-    if (current_time - last_update >= speed_delay) {
-        last_update = current_time;
-
-        // Apply continuous chase pattern across all target strips
-        uint16_t global_led_position = 0;
-        for (uint8_t i = 0; i < num_target_strips; i++) {
-            uint8_t strip_id = target_strips[i];
-            if (strip_id >= 22)
-                continue; // Invalid strip ID
-
-            CRGBSet strip_set = getStripSet(strip_id);
-            uint16_t strip_length = getStripLength(strip_id);
-
-            // Apply chase pattern with blending across the strip
-            for (uint16_t led = 0; led < strip_length; led++) {
-                uint16_t pattern_position = (global_led_position + chase_position) % (palette_size * 10);
-                uint8_t color_index = pattern_position / 10;
-                uint8_t blend_amount = (pattern_position % 10) * 25; // 0-250 blend amount
-
-                if (color_index < palette_size) {
-                    CRGB current_color = palette[color_index];
-                    CRGB next_color = palette[(color_index + 1) % palette_size];
-
-                    // Blend between current and next color
-                    CRGB blended_color = current_color.lerp8(next_color, blend_amount);
-
-                    getStripLED(strip_id, led) = blended_color;
-                }
-
-                global_led_position++;
-            }
-        }
-
-        // Advance chase position - advance more positions for higher speeds to match rainbow pattern timing
-        uint8_t advance_step = (speed / 10) + 1;  // Speed 1-10 = 1 step, 11-20 = 2 steps, etc.
-        chase_position = (chase_position + advance_step) % (palette_size * 10);
-
-        FastLED.show();
     }
 }

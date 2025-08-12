@@ -370,8 +370,8 @@ void setupPatternProgram()
     // Add patterns to queue with different transition delays (in seconds) and speeds (1-100 scale)
     addPatternToQueue(PATTERN_CHASE, rainbow_palette, all_strips, 10,
         0); // Rainbow chase on all strips - medium-fast speed - starts immediately
-    addPatternToQueue(PATTERN_PINWHEEL, rainbow_palette, inside, 80,
-        10); // FastLED rainbow on inside strips - medium speed - starts after 14 seconds
+    addPatternToQueue(PATTERN_RAINBOW_HORIZONTAL, rainbow_palette, inside, 100,
+        20); // FastLED rainbow on inside strips - medium speed - starts after 14 seconds
     addPatternToQueue(PATTERN_BREATHING, rainbow_palette, exterior_rings, 1,
         40); // Breathing effect on exterior rings - slow breathing - starts after 30 seconds
     // addPatternToQueue(PATTERN_SOLID, sunset_palette, exterior_rings, 1,
@@ -400,6 +400,9 @@ void runPattern(ChasePattern* pattern)
     case PATTERN_RAINBOW:
         runRainbowPattern(pattern);
         break;
+    case PATTERN_RAINBOW_HORIZONTAL:
+        runRainbowHorizontalPattern(pattern);
+        break;
     case PATTERN_BREATHING:
         runBreathingPattern(pattern);
         break;
@@ -408,7 +411,7 @@ void runPattern(ChasePattern* pattern)
         break;
     case PATTERN_CHASE:
     default:
-        runChasePatternLogic(pattern);
+        runChasePattern(pattern);
         break;
     }
 }

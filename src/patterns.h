@@ -12,12 +12,12 @@ struct PinConfig {
 };
 
 struct StripConfig {
-    uint8_t physical_pin;        // ESP32 pin number (13, 5, 19, etc.)
-    uint8_t pin_index;           // Which pin array (0-5)
-    uint16_t start_offset;       // LED offset within pin array
-    uint16_t length;             // Number of LEDs in this strip
-    bool reverse_direction;      // true = forward, false = reverse
-    CRGB* led_array_ptr;         // Direct pointer to pin's LED array
+    uint8_t physical_pin; // ESP32 pin number (13, 5, 19, etc.)
+    uint8_t pin_index; // Which pin array (0-5)
+    uint16_t start_offset; // LED offset within pin array
+    uint16_t length; // Number of LEDs in this strip
+    bool reverse_direction; // true = forward, false = reverse
+    CRGB* led_array_ptr; // Direct pointer to pin's LED array
     // CRGBSets will be created on-demand in getStripSet() function
 };
 
@@ -38,13 +38,21 @@ struct StripGroupConfig {
 
 enum FlashBulbState { FLASHBULB_INACTIVE, FLASHBULB_FLASH, FLASHBULB_FADE_TO_BLACK, FLASHBULB_TRANSITION_BACK };
 
-enum PatternType { PATTERN_CHASE, PATTERN_SOLID, PATTERN_SINGLE_CHASE, PATTERN_RAINBOW, PATTERN_BREATHING, PATTERN_PINWHEEL };
+enum PatternType {
+    PATTERN_CHASE,
+    PATTERN_SOLID,
+    PATTERN_SINGLE_CHASE,
+    PATTERN_RAINBOW,
+    PATTERN_BREATHING,
+    PATTERN_PINWHEEL,
+    PATTERN_RAINBOW_HORIZONTAL
+};
 
 struct ChasePattern {
     PatternType pattern_type;
     CRGB palette[MAX_PALETTE_SIZE];
     uint8_t palette_size;
-    CRGBPalette16 fastled_palette;    // FastLED palette for optimized operations
+    CRGBPalette16 fastled_palette; // FastLED palette for optimized operations
     uint8_t target_strips[MAX_TARGET_STRIPS];
     uint8_t num_target_strips;
     uint8_t speed; // 1-100 scale (1=slowest, 100=fastest)
@@ -93,7 +101,6 @@ extern CRGB pin6_leds[];
 extern PatternQueue pattern_queue;
 extern FlashBulbManager flashbulb_manager;
 
-
 // New strip configuration functions
 void configureStripDirections();
 CRGB& getLED(uint8_t strip_id, uint16_t led_index);
@@ -121,9 +128,7 @@ void runQueuedPattern();
 void runPattern(ChasePattern* pattern);
 
 // Chase pattern functions
-void chasePattern(
-    uint8_t* target_strips, uint8_t num_target_strips, CRGB* palette, uint8_t palette_size, uint8_t speed);
-void runChasePatternLogic(ChasePattern* pattern);
+void runChasePattern(ChasePattern* pattern);
 bool isStripActiveInFlashBulb(uint8_t strip_id);
 
 // Solid pattern functions
@@ -134,6 +139,7 @@ void runSingleChasePattern(ChasePattern* pattern);
 
 // FastLED optimized pattern functions
 void runRainbowPattern(ChasePattern* pattern);
+void runRainbowHorizontalPattern(ChasePattern* pattern);
 void runBreathingPattern(ChasePattern* pattern);
 void runPinwheelPattern(ChasePattern* pattern);
 
