@@ -97,7 +97,6 @@ extern FlashBulbManager flashbulb_manager;
 // New strip configuration functions
 void initializeStripConfigs();
 void configureStripDirections();
-void testStripAddressing();
 CRGB& getLED(uint8_t strip_id, uint16_t led_index);
 CRGBSet getStripSet(uint8_t strip_id);
 uint16_t getStripLength(uint8_t strip_id);
