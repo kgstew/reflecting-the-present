@@ -80,8 +80,9 @@ void runChasePatternLogic(ChasePattern* pattern)
             }
         }
 
-        // Advance chase position
-        pattern->chase_position = (pattern->chase_position + 1) % (pattern->palette_size * 10);
+        // Advance chase position - advance more positions for higher speeds to match rainbow pattern timing
+        uint8_t advance_step = (pattern->speed / 10) + 1;  // Speed 1-10 = 1 step, 11-20 = 2 steps, etc.
+        pattern->chase_position = (pattern->chase_position + advance_step) % (pattern->palette_size * 10);
     }
 }
 
@@ -124,8 +125,9 @@ void chasePattern(uint8_t* target_strips, uint8_t num_target_strips, CRGB* palet
             }
         }
 
-        // Advance chase position
-        chase_position = (chase_position + 1) % (palette_size * 10);
+        // Advance chase position - advance more positions for higher speeds to match rainbow pattern timing
+        uint8_t advance_step = (speed / 10) + 1;  // Speed 1-10 = 1 step, 11-20 = 2 steps, etc.
+        chase_position = (chase_position + advance_step) % (palette_size * 10);
 
         FastLED.show();
     }

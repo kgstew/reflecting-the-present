@@ -1,5 +1,7 @@
 #include "patterns.h"
 
+#define SPEED_MULTIPLIER 5
+
 void runRainbowPattern(ChasePattern* pattern)
 {
     unsigned long speed_delay = convertSpeedToDelay(pattern->speed);
@@ -19,13 +21,13 @@ void runRainbowPattern(ChasePattern* pattern)
 
             CRGBSet strip_set = getStripSet(strip_id);
             uint16_t strip_length = getStripLength(strip_id);
-            
+
             // Use FastLED's fill_rainbow for smooth rainbow effect
             // Higher speed = faster rainbow cycling, so divide by (101 - speed) to invert the relationship
-            uint8_t speed_divisor = (101 - pattern->speed) * 10;
+            uint8_t speed_divisor = (101 - pattern->speed) * SPEED_MULTIPLIER;
             uint8_t start_hue = (current_time / speed_divisor) % 256;  // Rotating rainbow
             fill_rainbow(strip_set, strip_length, start_hue, 255 / strip_length);
-            
+
             // Apply transition blending if transitioning
             if (pattern->is_transitioning) {
                 unsigned long transition_elapsed = current_time - pattern->transition_start_time;
@@ -35,7 +37,8 @@ void runRainbowPattern(ChasePattern* pattern)
                         uint8_t transition_blend = (transition_elapsed * 255) / pattern->transition_duration;
                         for (uint16_t led = 0; led < strip_length; led++) {
                             CRGB existing_color = getStripLED(strip_id, led);
-                            getStripLED(strip_id, led) = existing_color.lerp8(getStripLED(strip_id, led), transition_blend);
+                            getStripLED(strip_id, led)
+                                = existing_color.lerp8(getStripLED(strip_id, led), transition_blend);
                         }
                     } else {
                         // Transitioning out
@@ -45,7 +48,7 @@ void runRainbowPattern(ChasePattern* pattern)
                 }
             }
         }
-        
+
         pattern->chase_position = (pattern->chase_position + 1) % 256;
     }
 }
