@@ -21,7 +21,9 @@ void runRainbowPattern(ChasePattern* pattern)
             uint16_t strip_length = getStripLength(strip_id);
             
             // Use FastLED's fill_rainbow for smooth rainbow effect
-            uint8_t start_hue = (current_time / (pattern->speed * 10)) % 256;  // Rotating rainbow
+            // Higher speed = faster rainbow cycling, so divide by (101 - speed) to invert the relationship
+            uint8_t speed_divisor = (101 - pattern->speed) * 10;
+            uint8_t start_hue = (current_time / speed_divisor) % 256;  // Rotating rainbow
             fill_rainbow(strip_set, strip_length, start_hue, 255 / strip_length);
             
             // Apply transition blending if transitioning

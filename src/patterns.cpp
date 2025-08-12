@@ -67,7 +67,6 @@ void testStripAddressing()
     Serial.println("Test LEDs cleared");
 }
 
-
 CRGBSet getStripSet(uint8_t strip_id)
 {
     // Create and return the appropriate CRGBSet based on direction configuration
@@ -91,6 +90,24 @@ uint16_t getStripLength(uint8_t strip_id)
         return 122; // Default strip length
     }
     return strips[strip_id].length;
+}
+
+bool isStripActiveInFlashBulb(uint8_t strip_id)
+{
+    for (uint8_t i = 0; i < flashbulb_manager.pattern_count; i++) {
+        FlashBulbPattern& flashbulb = flashbulb_manager.patterns[i];
+        // Only block chase patterns during FLASH and FADE_TO_BLACK phases
+        // Allow chase patterns during TRANSITION_BACK so we have colors to blend to
+        if (flashbulb.state == FLASHBULB_FLASH || flashbulb.state == FLASHBULB_FADE_TO_BLACK) {
+            // Check if this strip is in the active FlashBulb pattern
+            for (uint8_t j = 0; j < flashbulb.num_target_strips; j++) {
+                if (flashbulb.target_strips[j] == strip_id) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 // Helper function to access LEDs with direction handling
@@ -351,20 +368,20 @@ void setupPatternProgram()
     static StripGroupConfig exterior_rings = { { 0, 1, 2, 11, 12, 13 }, 6 };
 
     // Add patterns to queue with different transition delays (in seconds) and speeds (1-100 scale)
-    addPatternToQueue(PATTERN_CHASE, rainbow_palette, all_strips, 75,
+    addPatternToQueue(PATTERN_CHASE, rainbow_palette, all_strips, 100,
         0); // Rainbow chase on all strips - medium-fast speed - starts immediately
-    addPatternToQueue(PATTERN_BREATHING, rainbow_palette, exterior_rings, 30,
-        10); // Breathing effect on exterior rings - slow breathing - starts after 30 seconds
-    addPatternToQueue(PATTERN_SOLID, sunset_palette, exterior_rings, 1,
-        60); // Solid sunset on exterior rings - speed irrelevant - starts after 10 seconds
+    addPatternToQueue(PATTERN_RAINBOW, rainbow_palette, all_strips, 1,
+        10); // FastLED rainbow on inside strips - medium speed - starts after 14 seconds
+    addPatternToQueue(PATTERN_BREATHING, rainbow_palette, exterior_rings, 1,
+        20); // Breathing effect on exterior rings - slow breathing - starts after 30 seconds
+    // addPatternToQueue(PATTERN_SOLID, sunset_palette, exterior_rings, 1,
+    //     60); // Solid sunset on exterior rings - speed irrelevant - starts after 10 seconds
     // addPatternToQueue(PATTERN_SINGLE_CHASE, cool_palette, inside, 100,
     //     30); // White single chase on inside strips - MAX SPEED - starts after 14 seconds
     // addPatternToQueue(PATTERN_SOLID, warm_palette, outside, 1,
     //     40); // Solid warm colors on outside strips - speed irrelevant - starts after 20 seconds
     // addPatternToQueue(PATTERN_SINGLE_CHASE, rainbow_palette, exterior_rings, 100,
     //     50); // White single chase on exterior rings - MAX SPEED - starts after 30 seconds
-    // addPatternToQueue(PATTERN_RAINBOW, rainbow_palette, inside, 50,
-    //     60); // FastLED rainbow on inside strips - medium speed - starts after 14 seconds
 
     // Start the pattern program
     startPatternQueue();

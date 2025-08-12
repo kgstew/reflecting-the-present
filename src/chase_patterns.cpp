@@ -1,28 +1,10 @@
 #include "patterns.h"
 
-bool isStripActiveInFlashBulb(uint8_t strip_id)
-{
-    for (uint8_t i = 0; i < flashbulb_manager.pattern_count; i++) {
-        FlashBulbPattern& flashbulb = flashbulb_manager.patterns[i];
-        // Only block chase patterns during FLASH and FADE_TO_BLACK phases
-        // Allow chase patterns during TRANSITION_BACK so we have colors to blend to
-        if (flashbulb.state == FLASHBULB_FLASH || flashbulb.state == FLASHBULB_FADE_TO_BLACK) {
-            // Check if this strip is in the active FlashBulb pattern
-            for (uint8_t j = 0; j < flashbulb.num_target_strips; j++) {
-                if (flashbulb.target_strips[j] == strip_id) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-
 void runChasePatternLogic(ChasePattern* pattern)
 {
     // Update FastLED palette if pattern has changed
     updatePatternPalette(pattern);
-    
+
     // Continue with chase pattern logic for PATTERN_CHASE
     unsigned long speed_delay = convertSpeedToDelay(pattern->speed);
     if (current_time - pattern->last_update >= speed_delay) {
@@ -48,8 +30,9 @@ void runChasePatternLogic(ChasePattern* pattern)
             // Apply chase pattern using FastLED's ColorFromPalette for smooth blending
             for (uint16_t led = 0; led < strip_length; led++) {
                 // Calculate palette index based on position in the chase
-                uint8_t palette_index = ((global_led_position + pattern->chase_position) * 255) / (pattern->palette_size * 10);
-                
+                uint8_t palette_index
+                    = ((global_led_position + pattern->chase_position) * 255) / (pattern->palette_size * 10);
+
                 // Use FastLED's ColorFromPalette for smooth color transitions
                 CRGB blended_color = ColorFromPalette(pattern->fastled_palette, palette_index, 255, LINEARBLEND);
 
@@ -61,8 +44,7 @@ void runChasePatternLogic(ChasePattern* pattern)
                     // Check if this strip is shared with other active patterns
                     for (uint8_t p = 0; p < pattern_queue.queue_size; p++) {
                         ChasePattern& other_pattern = pattern_queue.patterns[p];
-                        if (&other_pattern != pattern
-                            && (other_pattern.is_active || other_pattern.is_transitioning)) {
+                        if (&other_pattern != pattern && (other_pattern.is_active || other_pattern.is_transitioning)) {
                             // Check if this strip is in the other pattern
                             for (uint8_t s = 0; s < other_pattern.num_target_strips; s++) {
                                 if (other_pattern.target_strips[s] == strip_id) {
