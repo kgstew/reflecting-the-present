@@ -28,6 +28,45 @@ void configureStripDirections()
     }
 }
 
+void testStripAddressing()
+{
+    Serial.println("=== TESTING STRIP ADDRESSING ===");
+
+    // Test pin 1 strip 2 (strip_id = 2) - light up first 10 LEDs in red
+    Serial.println("Testing Pin 1 Strip 2 (strip_id=2) - lighting first 10 LEDs red");
+    CRGBSet test_strip_2 = getStripSet(2);
+    Serial.printf("Strip 2 direction: %s, size reported: %d\n", strips[2].reverse_direction ? "REVERSE" : "FORWARD",
+        test_strip_2.size());
+    for (int i = 0; i < 10 && i < 122; i++) { // Limit to known strip length
+        test_strip_2[i] = CRGB::Red;
+    }
+
+    // Test pin 4 strip 2 (strip_id = 12) - light up first 10 LEDs in blue
+    Serial.println("Testing Pin 4 Strip 2 (strip_id=12) - lighting first 10 LEDs blue");
+    CRGBSet test_strip_12 = getStripSet(12);
+    Serial.printf("Strip 12 direction: %s, size reported: %d\n", strips[12].reverse_direction ? "REVERSE" : "FORWARD",
+        test_strip_12.size());
+
+    // For reverse strips, be extra careful with bounds
+    int safe_limit = min(10, 122); // Use known strip length instead of size()
+    for (int i = 0; i < safe_limit; i++) {
+        test_strip_12[i] = CRGB::Blue;
+    }
+
+    FastLED.show();
+    Serial.println("Address test complete - check if LEDs are lighting correctly");
+
+    delay(3000); // Hold for 3 seconds
+
+    // Clear the test LEDs using safe bounds
+    for (int i = 0; i < 122; i++) {
+        test_strip_2[i] = CRGB::Black;
+        test_strip_12[i] = CRGB::Black;
+    }
+    FastLED.show();
+    Serial.println("Test LEDs cleared");
+}
+
 void initializeStripConfigs()
 {
     // Validation and setup for the new strip configuration system
@@ -232,46 +271,7 @@ void initializeStripConfigs()
     Serial.println("Strip configuration initialized successfully");
 
     // Perform a simple LED addressing test
-    testStripAddressing();
-}
-
-void testStripAddressing()
-{
-    Serial.println("=== TESTING STRIP ADDRESSING ===");
-
-    // Test pin 1 strip 2 (strip_id = 2) - light up first 10 LEDs in red
-    Serial.println("Testing Pin 1 Strip 2 (strip_id=2) - lighting first 10 LEDs red");
-    CRGBSet test_strip_2 = getStripSet(2);
-    Serial.printf("Strip 2 direction: %s, size reported: %d\n", strips[2].reverse_direction ? "REVERSE" : "FORWARD",
-        test_strip_2.size());
-    for (int i = 0; i < 10 && i < 122; i++) { // Limit to known strip length
-        test_strip_2[i] = CRGB::Red;
-    }
-
-    // Test pin 4 strip 2 (strip_id = 12) - light up first 10 LEDs in blue
-    Serial.println("Testing Pin 4 Strip 2 (strip_id=12) - lighting first 10 LEDs blue");
-    CRGBSet test_strip_12 = getStripSet(12);
-    Serial.printf("Strip 12 direction: %s, size reported: %d\n", strips[12].reverse_direction ? "REVERSE" : "FORWARD",
-        test_strip_12.size());
-
-    // For reverse strips, be extra careful with bounds
-    int safe_limit = min(10, 122); // Use known strip length instead of size()
-    for (int i = 0; i < safe_limit; i++) {
-        test_strip_12[i] = CRGB::Blue;
-    }
-
-    FastLED.show();
-    Serial.println("Address test complete - check if LEDs are lighting correctly");
-
-    delay(3000); // Hold for 3 seconds
-
-    // Clear the test LEDs using safe bounds
-    for (int i = 0; i < 122; i++) {
-        test_strip_2[i] = CRGB::Black;
-        test_strip_12[i] = CRGB::Black;
-    }
-    FastLED.show();
-    Serial.println("Test LEDs cleared");
+    // testStripAddressing();
 }
 
 CRGBSet getStripSet(uint8_t strip_id)
@@ -559,20 +559,18 @@ void setupPatternProgram()
     // Add patterns to queue with different transition delays (in seconds) and speeds (1-100 scale)
     addPatternToQueue(PATTERN_CHASE, rainbow_palette, all_strips, 75,
         0); // Rainbow chase on all strips - medium-fast speed - starts immediately
-    addPatternToQueue(PATTERN_SOLID, sunset_palette, exterior_rings, 1,
-        10); // Solid sunset on exterior rings - speed irrelevant - starts after 10 seconds
-    addPatternToQueue(PATTERN_SINGLE_CHASE, cool_palette, inside, 100,
-        14); // White single chase on inside strips - MAX SPEED - starts after 14 seconds
-    addPatternToQueue(PATTERN_SOLID, warm_palette, outside, 1,
-        20); // Solid warm colors on outside strips - speed irrelevant - starts after 20 seconds
-    addPatternToQueue(PATTERN_SINGLE_CHASE, rainbow_palette, exterior_rings, 100,
-        30); // White single chase on exterior rings - MAX SPEED - starts after 30 seconds
-    addPatternToQueue(PATTERN_RAINBOW, rainbow_palette, inside, 50,
-        40); // FastLED rainbow on inside strips - medium speed - starts after 14 seconds
-    addPatternToQueue(PATTERN_SINGLE_CHASE, cool_palette, outside, 100,
-        50); // Cool single chase on outside strips - MAX SPEED - starts after 20 seconds
     addPatternToQueue(PATTERN_BREATHING, warm_palette, exterior_rings, 30,
-        60); // Breathing effect on exterior rings - slow breathing - starts after 30 seconds
+        10); // Breathing effect on exterior rings - slow breathing - starts after 30 seconds
+    addPatternToQueue(PATTERN_SOLID, sunset_palette, exterior_rings, 1,
+        20); // Solid sunset on exterior rings - speed irrelevant - starts after 10 seconds
+    addPatternToQueue(PATTERN_SINGLE_CHASE, cool_palette, inside, 100,
+        30); // White single chase on inside strips - MAX SPEED - starts after 14 seconds
+    addPatternToQueue(PATTERN_SOLID, warm_palette, outside, 1,
+        40); // Solid warm colors on outside strips - speed irrelevant - starts after 20 seconds
+    addPatternToQueue(PATTERN_SINGLE_CHASE, rainbow_palette, exterior_rings, 100,
+        50); // White single chase on exterior rings - MAX SPEED - starts after 30 seconds
+    addPatternToQueue(PATTERN_RAINBOW, rainbow_palette, inside, 50,
+        60); // FastLED rainbow on inside strips - medium speed - starts after 14 seconds
 
     // Start the pattern program
     startPatternQueue();

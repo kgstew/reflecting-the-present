@@ -7,8 +7,12 @@ void runBreathingPattern(ChasePattern* pattern)
     // Use FastLED's beatsin8 for smooth breathing effect
     uint8_t breath = beatsin8(pattern->speed, 50, 255);  // Breathe between 50-255 brightness
     
-    // Use the first color in the palette for breathing pattern
-    CRGB base_color = (pattern->palette_size > 0) ? pattern->palette[0] : CRGB::White;
+    // Cycle through palette colors at 1/4 the speed of breathing
+    CRGB base_color = CRGB::White;
+    if (pattern->palette_size > 0) {
+        uint8_t color_index = beatsin8(pattern->speed / 4, 0, pattern->palette_size - 1);
+        base_color = pattern->palette[color_index];
+    }
     
     // Apply breathing pattern to all target strips
     for (uint8_t i = 0; i < pattern->num_target_strips; i++) {
