@@ -81,6 +81,7 @@ SensorMapping sensor_mappings[MAX_SENSORS] = {
 };
 
 // Function declarations
+void initializeStripConfigs();
 void handleSensorMessage(String message);
 void setupWiFiAndWebSocket();
 
@@ -251,6 +252,213 @@ void setup()
     Serial.println("Password: lightshow2024");
     Serial.println("WebSocket: ws://192.168.4.1:81");
     Serial.println("Web interface: http://192.168.4.1");
+}
+
+void initializeStripConfigs()
+{
+    // Validation and setup for the new strip configuration system
+    Serial.println("Initializing unified strip configuration...");
+
+    // Initialize strip configuration data using individual field assignment
+    // Pin 1 (13) - 3 strips (strips 0-2)
+    strips[0].physical_pin = 13;
+    strips[0].pin_index = 0;
+    strips[0].start_offset = 0;
+    strips[0].length = 122;
+    strips[0].reverse_direction = false;
+    strips[0].led_array_ptr = pin1_leds;
+    strips[1].physical_pin = 13;
+    strips[1].pin_index = 0;
+    strips[1].start_offset = 122;
+    strips[1].length = 122;
+    strips[1].reverse_direction = false;
+    strips[1].led_array_ptr = pin1_leds;
+    strips[2].physical_pin = 13;
+    strips[2].pin_index = 0;
+    strips[2].start_offset = 244;
+    strips[2].length = 122;
+    strips[2].reverse_direction = false;
+    strips[2].led_array_ptr = pin1_leds;
+
+    // Pin 2 (5) - 4 strips (strips 3-6)
+    strips[3].physical_pin = 5;
+    strips[3].pin_index = 1;
+    strips[3].start_offset = 0;
+    strips[3].length = 122;
+    strips[3].reverse_direction = false;
+    strips[3].led_array_ptr = pin2_leds;
+    strips[4].physical_pin = 5;
+    strips[4].pin_index = 1;
+    strips[4].start_offset = 122;
+    strips[4].length = 122;
+    strips[4].reverse_direction = false;
+    strips[4].led_array_ptr = pin2_leds;
+    strips[5].physical_pin = 5;
+    strips[5].pin_index = 1;
+    strips[5].start_offset = 244;
+    strips[5].length = 122;
+    strips[5].reverse_direction = false;
+    strips[5].led_array_ptr = pin2_leds;
+    strips[6].physical_pin = 5;
+    strips[6].pin_index = 1;
+    strips[6].start_offset = 366;
+    strips[6].length = 122;
+    strips[6].reverse_direction = false;
+    strips[6].led_array_ptr = pin2_leds;
+
+    // Pin 3 (19) - 4 strips (strips 7-10)
+    strips[7].physical_pin = 19;
+    strips[7].pin_index = 2;
+    strips[7].start_offset = 0;
+    strips[7].length = 122;
+    strips[7].reverse_direction = false;
+    strips[7].led_array_ptr = pin3_leds;
+    strips[8].physical_pin = 19;
+    strips[8].pin_index = 2;
+    strips[8].start_offset = 122;
+    strips[8].length = 122;
+    strips[8].reverse_direction = false;
+    strips[8].led_array_ptr = pin3_leds;
+    strips[9].physical_pin = 19;
+    strips[9].pin_index = 2;
+    strips[9].start_offset = 244;
+    strips[9].length = 122;
+    strips[9].reverse_direction = false;
+    strips[9].led_array_ptr = pin3_leds;
+    strips[10].physical_pin = 19;
+    strips[10].pin_index = 2;
+    strips[10].start_offset = 366;
+    strips[10].length = 122;
+    strips[10].reverse_direction = false;
+    strips[10].led_array_ptr = pin3_leds;
+
+    // Pin 4 (23) - 3 strips (strips 11-13)
+    strips[11].physical_pin = 23;
+    strips[11].pin_index = 3;
+    strips[11].start_offset = 0;
+    strips[11].length = 122;
+    strips[11].reverse_direction = false;
+    strips[11].led_array_ptr = pin4_leds;
+    strips[12].physical_pin = 23;
+    strips[12].pin_index = 3;
+    strips[12].start_offset = 122;
+    strips[12].length = 122;
+    strips[12].reverse_direction = false;
+    strips[12].led_array_ptr = pin4_leds;
+    strips[13].physical_pin = 23;
+    strips[13].pin_index = 3;
+    strips[13].start_offset = 244;
+    strips[13].length = 122;
+    strips[13].reverse_direction = false;
+    strips[13].led_array_ptr = pin4_leds;
+
+    // Pin 5 (18) - 4 strips (strips 14-17)
+    strips[14].physical_pin = 18;
+    strips[14].pin_index = 4;
+    strips[14].start_offset = 0;
+    strips[14].length = 122;
+    strips[14].reverse_direction = false;
+    strips[14].led_array_ptr = pin5_leds;
+    strips[15].physical_pin = 18;
+    strips[15].pin_index = 4;
+    strips[15].start_offset = 122;
+    strips[15].length = 122;
+    strips[15].reverse_direction = false;
+    strips[15].led_array_ptr = pin5_leds;
+    strips[16].physical_pin = 18;
+    strips[16].pin_index = 4;
+    strips[16].start_offset = 244;
+    strips[16].length = 122;
+    strips[16].reverse_direction = false;
+    strips[16].led_array_ptr = pin5_leds;
+    strips[17].physical_pin = 18;
+    strips[17].pin_index = 4;
+    strips[17].start_offset = 366;
+    strips[17].length = 122;
+    strips[17].reverse_direction = false;
+    strips[17].led_array_ptr = pin5_leds;
+
+    // Pin 6 (12) - 4 strips (strips 18-21)
+    strips[18].physical_pin = 12;
+    strips[18].pin_index = 5;
+    strips[18].start_offset = 0;
+    strips[18].length = 122;
+    strips[18].reverse_direction = false;
+    strips[18].led_array_ptr = pin6_leds;
+    strips[19].physical_pin = 12;
+    strips[19].pin_index = 5;
+    strips[19].start_offset = 122;
+    strips[19].length = 122;
+    strips[19].reverse_direction = false;
+    strips[19].led_array_ptr = pin6_leds;
+    strips[20].physical_pin = 12;
+    strips[20].pin_index = 5;
+    strips[20].start_offset = 244;
+    strips[20].length = 122;
+    strips[20].reverse_direction = false;
+    strips[20].led_array_ptr = pin6_leds;
+    strips[21].physical_pin = 12;
+    strips[21].pin_index = 5;
+    strips[21].start_offset = 366;
+    strips[21].length = 122;
+    strips[21].reverse_direction = false;
+    strips[21].led_array_ptr = pin6_leds;
+
+    // Apply direction configuration
+    configureStripDirections();
+
+    // Initialize FastLED sets for each strip
+    for (uint8_t i = 0; i < 22; i++) {
+        StripConfig& strip = strips[i];
+
+        // Verify pin index is valid
+        if (strip.pin_index > 5) {
+            Serial.printf("ERROR: Strip %d has invalid pin_index %d\n", i, strip.pin_index);
+            continue;
+        }
+
+        // Verify the pin matches PinConfig
+        if (strip.physical_pin != pin_configs[strip.pin_index].pin) {
+            Serial.printf("WARNING: Strip %d pin mismatch - strip:%d vs pinconfig:%d\n", i, strip.physical_pin,
+                pin_configs[strip.pin_index].pin);
+        }
+
+        // Verify LED array pointer matches
+        if (strip.led_array_ptr != pin_configs[strip.pin_index].led_array) {
+            Serial.printf("WARNING: Strip %d LED array pointer mismatch\n", i);
+        }
+
+        // Note: CRGBSets will be created on-demand in getStripSet() function
+
+        Serial.printf("Strip %d: Pin %d, Offset %d, Length %d, Direction: %s\n", i, strip.physical_pin,
+            strip.start_offset, strip.length, strip.reverse_direction ? "REVERSED" : "FORWARD");
+    }
+
+    // Add debug output to verify addressing for problematic strips
+    Serial.println("=== DEBUG: Verifying problematic strip addressing ===");
+
+    // Test Pin 1 Strip 2 (strip_id = 2)
+    Serial.printf("Pin 1 Strip 2 (strip_id=2): ");
+    CRGBSet test_set_2 = getStripSet(2);
+    Serial.printf("CRGBSet size=%d, ptr=%p\n", test_set_2.size(), &test_set_2[0]);
+    Serial.printf("Strip config: pin=%d, offset=%d, length=%d, array_ptr=%p\n", strips[2].physical_pin,
+        strips[2].start_offset, strips[2].length, strips[2].led_array_ptr);
+    Serial.printf("Calculated start address: %p\n", strips[2].led_array_ptr + strips[2].start_offset);
+
+    // Test Pin 4 Strip 2 (strip_id = 12)
+    Serial.printf("Pin 4 Strip 2 (strip_id=12): ");
+    CRGBSet test_set_12 = getStripSet(12);
+    Serial.printf("CRGBSet size=%d, ptr=%p\n", test_set_12.size(), &test_set_12[0]);
+    Serial.printf("Strip config: pin=%d, offset=%d, length=%d, array_ptr=%p\n", strips[12].physical_pin,
+        strips[12].start_offset, strips[12].length, strips[12].led_array_ptr);
+    Serial.printf("Calculated start address: %p\n", strips[12].led_array_ptr + strips[12].start_offset);
+
+    // Note: Array size verification removed due to extern declaration limitations
+
+    Serial.println("Strip configuration initialized successfully");
+
+    // Perform a simple LED addressing test
+    // testStripAddressing();
 }
 
 void demoFlashBulb()
