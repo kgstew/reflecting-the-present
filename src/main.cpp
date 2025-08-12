@@ -56,8 +56,8 @@ AsyncWebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(81);
 
 // Sensor ID to LED strip mapping
-#define MAX_SENSORS 10
-#define MAX_STRIPS_PER_SENSOR 5
+#define MAX_SENSORS 8
+#define MAX_STRIPS_PER_SENSOR 4
 
 struct SensorMapping {
     uint8_t sensor_id;
