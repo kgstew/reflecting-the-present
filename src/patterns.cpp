@@ -368,9 +368,9 @@ void setupPatternProgram()
     static StripGroupConfig exterior_rings = { { 0, 1, 2, 11, 12, 13 }, 6 };
 
     // Add patterns to queue with different transition delays (in seconds) and speeds (1-100 scale)
-    addPatternToQueue(PATTERN_CHASE, rainbow_palette, all_strips, 100,
+    addPatternToQueue(PATTERN_CHASE, rainbow_palette, all_strips, 10,
         0); // Rainbow chase on all strips - medium-fast speed - starts immediately
-    addPatternToQueue(PATTERN_RAINBOW, rainbow_palette, all_strips, 1,
+    addPatternToQueue(PATTERN_PINWHEEL, rainbow_palette, inside, 10,
         10); // FastLED rainbow on inside strips - medium speed - starts after 14 seconds
     addPatternToQueue(PATTERN_BREATHING, rainbow_palette, exterior_rings, 1,
         20); // Breathing effect on exterior rings - slow breathing - starts after 30 seconds
@@ -402,6 +402,9 @@ void runPattern(ChasePattern* pattern)
         break;
     case PATTERN_BREATHING:
         runBreathingPattern(pattern);
+        break;
+    case PATTERN_PINWHEEL:
+        runPinwheelPattern(pattern);
         break;
     case PATTERN_CHASE:
     default:

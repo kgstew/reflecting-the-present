@@ -38,7 +38,7 @@ struct StripGroupConfig {
 
 enum FlashBulbState { FLASHBULB_INACTIVE, FLASHBULB_FLASH, FLASHBULB_FADE_TO_BLACK, FLASHBULB_TRANSITION_BACK };
 
-enum PatternType { PATTERN_CHASE, PATTERN_SOLID, PATTERN_SINGLE_CHASE, PATTERN_RAINBOW, PATTERN_BREATHING };
+enum PatternType { PATTERN_CHASE, PATTERN_SOLID, PATTERN_SINGLE_CHASE, PATTERN_RAINBOW, PATTERN_BREATHING, PATTERN_PINWHEEL };
 
 struct ChasePattern {
     PatternType pattern_type;
@@ -135,6 +135,7 @@ void runSingleChasePattern(ChasePattern* pattern);
 // FastLED optimized pattern functions
 void runRainbowPattern(ChasePattern* pattern);
 void runBreathingPattern(ChasePattern* pattern);
+void runPinwheelPattern(ChasePattern* pattern);
 
 // FlashBulb pattern functions
 void initFlashBulbManager();
