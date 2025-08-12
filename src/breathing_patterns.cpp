@@ -3,17 +3,17 @@
 void runBreathingPattern(ChasePattern* pattern)
 {
     pattern->last_update = current_time;
-    
+
     // Use FastLED's beatsin8 for smooth breathing effect
-    uint8_t breath = beatsin8(pattern->speed, 50, 255);  // Breathe between 50-255 brightness
-    
+    uint8_t breath = beatsin8(pattern->speed / 8, 102, 255); // Breathe between 70%-100% brightness (30% fade to black)
+
     // Cycle through palette colors at 1/4 the speed of breathing
     CRGB base_color = CRGB::White;
     if (pattern->palette_size > 0) {
-        uint8_t color_index = beatsin8(pattern->speed / 4, 0, pattern->palette_size - 1);
+        uint8_t color_index = beatsin8(pattern->speed / 32, 0, pattern->palette_size - 1);
         base_color = pattern->palette[color_index];
     }
-    
+
     // Apply breathing pattern to all target strips
     for (uint8_t i = 0; i < pattern->num_target_strips; i++) {
         uint8_t strip_id = pattern->target_strips[i];
@@ -27,11 +27,11 @@ void runBreathingPattern(ChasePattern* pattern)
 
         CRGBSet strip_set = getStripSet(strip_id);
         uint16_t strip_length = getStripLength(strip_id);
-        
+
         // Fill with base color and apply breathing brightness
         strip_set.fill_solid(base_color);
         strip_set.fadeToBlackBy(255 - breath);
-        
+
         // Apply transition blending if transitioning
         if (pattern->is_transitioning) {
             unsigned long transition_elapsed = current_time - pattern->transition_start_time;
