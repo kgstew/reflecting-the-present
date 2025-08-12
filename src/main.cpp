@@ -19,9 +19,7 @@
 #define PIN5 18
 #define PIN6 12
 
-uint16_t strip_lengths[]
-    = { 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122 };
-
+// LED arrays for each pin
 CRGB pin1_leds[366];
 CRGB pin2_leds[488];
 CRGB pin3_leds[488];
@@ -29,57 +27,24 @@ CRGB pin4_leds[366];
 CRGB pin5_leds[488];
 CRGB pin6_leds[488];
 
+// Pin configuration for FastLED setup (still needed for FastLED.addLeds calls)
 PinConfig pin_configs[NUM_PINS]
     = { { PIN1, 3, 122, 366, pin1_leds }, { PIN2, 4, 122, 488, pin2_leds }, { PIN3, 4, 122, 488, pin3_leds },
           { PIN4, 3, 122, 366, pin4_leds }, { PIN5, 4, 122, 488, pin5_leds }, { PIN6, 4, 122, 488, pin6_leds } };
 
-uint8_t strip_map[] = { 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5 };
-
-// Pre-calculated strip offsets for performance (calculated once at startup)
-uint16_t strip_offsets[22];
-
-// Strip direction configuration (true = forward, false = reverse)
-bool strip_directions[22] = {
-    true, true, true, true, true, true, true, true, true, true, true, // strips 0-10 forward
-    true, true, true, true, true, true, true, true, true, true, true // strips 11-21 forward
+// Configure which strips should be reversed (can be modified as needed)
+// Example configuration - modify these values to change strip directions
+bool strip_reverse_config[22] = {
+    false, true, false,      // Pin 1: strip 1 reversed
+    false, false, false, false,  // Pin 2: all forward
+    false, false, false, false,  // Pin 3: all forward  
+    false, true, false,      // Pin 4: strip 12 reversed
+    false, false, false, false,  // Pin 5: all forward
+    false, false, false, false   // Pin 6: all forward
 };
 
-// New unified strip configuration
-StripConfig strips[22] = {
-    // Pin 1 (13) - 3 strips (strips 0-2)
-    {13, 0, 0,   122, false, pin1_leds},    // Strip 0
-    {13, 0, 122, 122, false, pin1_leds},    // Strip 1
-    {13, 0, 244, 122, false, pin1_leds},    // Strip 2
-    
-    // Pin 2 (5) - 4 strips (strips 3-6)
-    {5,  1, 0,   122, false, pin2_leds},    // Strip 3
-    {5,  1, 122, 122, false, pin2_leds},    // Strip 4
-    {5,  1, 244, 122, false, pin2_leds},    // Strip 5
-    {5,  1, 366, 122, false, pin2_leds},    // Strip 6
-    
-    // Pin 3 (19) - 4 strips (strips 7-10)
-    {19, 2, 0,   122, false, pin3_leds},    // Strip 7
-    {19, 2, 122, 122, false, pin3_leds},    // Strip 8
-    {19, 2, 244, 122, false, pin3_leds},    // Strip 9
-    {19, 2, 366, 122, false, pin3_leds},    // Strip 10
-    
-    // Pin 4 (23) - 3 strips (strips 11-13)
-    {23, 3, 0,   122, false, pin4_leds},    // Strip 11
-    {23, 3, 122, 122, false, pin4_leds},    // Strip 12
-    {23, 3, 244, 122, false, pin4_leds},    // Strip 13
-    
-    // Pin 5 (18) - 4 strips (strips 14-17)
-    {18, 4, 0,   122, false, pin5_leds},    // Strip 14
-    {18, 4, 122, 122, false, pin5_leds},    // Strip 15
-    {18, 4, 244, 122, false, pin5_leds},    // Strip 16
-    {18, 4, 366, 122, false, pin5_leds},    // Strip 17
-    
-    // Pin 6 (12) - 4 strips (strips 18-21)
-    {12, 5, 0,   122, false, pin6_leds},    // Strip 18
-    {12, 5, 122, 122, false, pin6_leds},    // Strip 19
-    {12, 5, 244, 122, false, pin6_leds},    // Strip 20
-    {12, 5, 366, 122, false, pin6_leds}     // Strip 21
-};
+// New unified strip configuration (CRGBSets will be initialized in initializeStripConfigs())
+StripConfig strips[22];
 
 unsigned long current_time;
 
@@ -259,28 +224,16 @@ void setup()
 
     Serial.println("LED configuration:");
     uint16_t total_leds = 0;
-    uint8_t strip_index = 0;
-
+    
     for (int pin = 0; pin < NUM_PINS; pin++) {
-        Serial.printf("Pin %d: %d LEDs (%d strips) - Strips: ", pin_configs[pin].pin, pin_configs[pin].total_leds,
-            pin_configs[pin].num_strips);
-
-        for (int s = 0; s < pin_configs[pin].num_strips; s++) {
-            Serial.printf("%d", strip_lengths[strip_index]);
-            if (s < pin_configs[pin].num_strips - 1)
-                Serial.print(", ");
-            strip_index++;
-        }
-        Serial.println();
+        Serial.printf("Pin %d (%d): %d LEDs (%d strips)\n", 
+                     pin, pin_configs[pin].pin, pin_configs[pin].total_leds, pin_configs[pin].num_strips);
         total_leds += pin_configs[pin].total_leds;
     }
 
-    Serial.printf("Total: %d LEDs across %d strips\n", total_leds, strip_index);
+    Serial.printf("Total: %d LEDs across 22 strips\n", total_leds);
     Serial.println("Expected: 3+4+4+3+4+4 = 22 strips total");
 
-    // Calculate strip offsets for performance optimization
-    calculateStripOffsets();
-    
     // Initialize and validate new strip configuration system
     initializeStripConfigs();
 

@@ -25,38 +25,49 @@ void runSingleChasePattern(ChasePattern* pattern)
                 continue;
             }
 
-            // Set entire strip to black
-            for (uint16_t led = 0; led < strips[strip_id].length; led++) {
-                CRGB final_color = CRGB::Black;
+            CRGBSet strip_set = getStripSet(strip_id);
+            uint16_t strip_length_actual = getStripLength(strip_id);
+            
+            // Start with black strip using FastLED's fill_solid
+            strip_set.fill_solid(CRGB::Black);
 
-                // Only apply white LEDs to the currently active strip
-                if (i == current_strip_index && position_in_strip < strip_length) {
-                    // Check if this LED is within the 10-LED chase window
-                    if (led >= position_in_strip && led < position_in_strip + SINGLE_CHASE_LENGTH
-                        && led < strips[strip_id].length) {
-                        final_color = CRGB::White;
-                    }
+            // Only apply white LEDs to the currently active strip
+            if (i == current_strip_index && position_in_strip < strip_length) {
+                // Calculate the chase window bounds
+                uint16_t chase_start = position_in_strip;
+                uint16_t chase_end = min((uint16_t)(position_in_strip + SINGLE_CHASE_LENGTH), strip_length_actual);
+                
+                // Fill the chase window with white using FastLED's subset
+                if (chase_start < strip_length_actual && chase_end > chase_start) {
+                    CRGBSet chase_window = strip_set(chase_start, chase_end - 1);
+                    chase_window.fill_solid(CRGB::White);
                 }
+            }
 
-                // Apply transition blending if transitioning
-                if (pattern->is_transitioning) {
-                    unsigned long transition_elapsed = current_time - pattern->transition_start_time;
+            // Apply transition blending if transitioning
+            if (pattern->is_transitioning) {
+                unsigned long transition_elapsed = current_time - pattern->transition_start_time;
 
-                    if (transition_elapsed < pattern->transition_duration) {
-                        if (!pattern->is_active) {
-                            // Transitioning in (fade in from existing color to chase pattern)
-                            uint8_t transition_blend = (transition_elapsed * 255) / pattern->transition_duration;
-                            CRGB existing_color = getLED(strip_id, led);
-                            final_color = existing_color.lerp8(final_color, transition_blend);
-                        } else {
-                            // Transitioning out (fade out to black)
-                            uint8_t transition_blend = 255 - (transition_elapsed * 255) / pattern->transition_duration;
-                            final_color.fadeToBlackBy(255 - transition_blend);
+                if (transition_elapsed < pattern->transition_duration) {
+                    if (!pattern->is_active) {
+                        // Transitioning in (fade in from existing color to chase pattern)
+                        uint8_t transition_blend = (transition_elapsed * 255) / pattern->transition_duration;
+                        
+                        // Use FastLED's lerp8 for smooth transitions
+                        for (uint16_t led = 0; led < strip_length_actual; led++) {
+                            CRGB existing_color = getStripLED(strip_id, led);
+                            CRGB target_color = (i == current_strip_index && 
+                                               led >= position_in_strip && 
+                                               led < position_in_strip + SINGLE_CHASE_LENGTH &&
+                                               position_in_strip < strip_length) ? CRGB::White : CRGB::Black;
+                            getStripLED(strip_id, led) = existing_color.lerp8(target_color, transition_blend);
                         }
+                    } else {
+                        // Transitioning out (fade out to black)
+                        uint8_t fade_amount = (transition_elapsed * 255) / pattern->transition_duration;
+                        strip_set.fadeToBlackBy(fade_amount);
                     }
                 }
-
-                getLED(strip_id, led) = final_color;
             }
         }
 

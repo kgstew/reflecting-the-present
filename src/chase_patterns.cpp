@@ -20,6 +20,9 @@ bool isStripActiveInFlashBulb(uint8_t strip_id)
 
 void runChasePatternLogic(ChasePattern* pattern)
 {
+    // Update FastLED palette if pattern has changed
+    updatePatternPalette(pattern);
+    
     // Continue with chase pattern logic for PATTERN_CHASE
     unsigned long speed_delay = convertSpeedToDelay(pattern->speed);
     if (current_time - pattern->last_update >= speed_delay) {
@@ -39,67 +42,58 @@ void runChasePatternLogic(ChasePattern* pattern)
                 continue;
             }
 
-            uint16_t strip_length = strips[strip_id].length;
+            CRGBSet strip_set = getStripSet(strip_id);
+            uint16_t strip_length = getStripLength(strip_id);
 
-            // Apply chase pattern with blending across the strip
+            // Apply chase pattern using FastLED's ColorFromPalette for smooth blending
             for (uint16_t led = 0; led < strip_length; led++) {
-                uint16_t pattern_position
-                    = (global_led_position + pattern->chase_position) % (pattern->palette_size * 10);
-                uint8_t color_index = pattern_position / 10;
-                uint8_t blend_amount = (pattern_position % 10) * 25; // 0-250 blend amount
+                // Calculate palette index based on position in the chase
+                uint8_t palette_index = ((global_led_position + pattern->chase_position) * 255) / (pattern->palette_size * 10);
+                
+                // Use FastLED's ColorFromPalette for smooth color transitions
+                CRGB blended_color = ColorFromPalette(pattern->fastled_palette, palette_index, 255, LINEARBLEND);
 
-                if (color_index < pattern->palette_size) {
-                    CRGB current_color = pattern->palette[color_index];
-                    CRGB next_color = pattern->palette[(color_index + 1) % pattern->palette_size];
+                // Apply transition blending only if this strip is actually being changed
+                if (pattern->is_transitioning) {
+                    // Check if there's an active pattern on this strip that's different from current pattern
+                    bool strip_has_transition = false;
 
-                    // Blend between current and next color in palette
-                    CRGB blended_color = current_color.lerp8(next_color, blend_amount);
-
-                    // Apply transition blending only if this strip is actually being changed
-                    if (pattern->is_transitioning) {
-                        // Check if there's an active pattern on this strip that's different from current pattern
-                        bool strip_has_transition = false;
-
-                        // Check if this strip is shared with other active patterns
-                        for (uint8_t p = 0; p < pattern_queue.queue_size; p++) {
-                            ChasePattern& other_pattern = pattern_queue.patterns[p];
-                            if (&other_pattern != pattern
-                                && (other_pattern.is_active || other_pattern.is_transitioning)) {
-                                // Check if this strip is in the other pattern
-                                for (uint8_t s = 0; s < other_pattern.num_target_strips; s++) {
-                                    if (other_pattern.target_strips[s] == strip_id) {
-                                        strip_has_transition = true;
-                                        break;
-                                    }
+                    // Check if this strip is shared with other active patterns
+                    for (uint8_t p = 0; p < pattern_queue.queue_size; p++) {
+                        ChasePattern& other_pattern = pattern_queue.patterns[p];
+                        if (&other_pattern != pattern
+                            && (other_pattern.is_active || other_pattern.is_transitioning)) {
+                            // Check if this strip is in the other pattern
+                            for (uint8_t s = 0; s < other_pattern.num_target_strips; s++) {
+                                if (other_pattern.target_strips[s] == strip_id) {
+                                    strip_has_transition = true;
+                                    break;
                                 }
                             }
-                            if (strip_has_transition)
-                                break;
                         }
+                        if (strip_has_transition)
+                            break;
+                    }
 
-                        if (strip_has_transition || !pattern->is_active) {
-                            unsigned long transition_elapsed = current_time - pattern->transition_start_time;
+                    if (strip_has_transition || !pattern->is_active) {
+                        unsigned long transition_elapsed = current_time - pattern->transition_start_time;
 
-                            if (transition_elapsed < pattern->transition_duration) {
-                                if (pattern->is_active) {
-                                    // Transitioning out (fade out)
-                                    uint8_t transition_blend
-                                        = 255 - (transition_elapsed * 255) / pattern->transition_duration;
-                                    blended_color.fadeToBlackBy(255 - transition_blend);
-                                } else {
-                                    // Transitioning in (fade in)
-                                    uint8_t transition_blend
-                                        = (transition_elapsed * 255) / pattern->transition_duration;
-                                    CRGB existing_color = getLED(strip_id, led);
-                                    blended_color = existing_color.lerp8(blended_color, transition_blend);
-                                }
+                        if (transition_elapsed < pattern->transition_duration) {
+                            if (pattern->is_active) {
+                                // Transitioning out (fade out) - use FastLED's fadeToBlackBy
+                                uint8_t fade_amount = (transition_elapsed * 255) / pattern->transition_duration;
+                                blended_color.fadeToBlackBy(fade_amount);
+                            } else {
+                                // Transitioning in (fade in) - use FastLED's lerp8
+                                uint8_t transition_blend = (transition_elapsed * 255) / pattern->transition_duration;
+                                CRGB existing_color = getStripLED(strip_id, led);
+                                blended_color = existing_color.lerp8(blended_color, transition_blend);
                             }
                         }
                     }
-
-                    getLED(strip_id, led) = blended_color;
                 }
 
+                getStripLED(strip_id, led) = blended_color;
                 global_led_position++;
             }
         }
@@ -125,10 +119,8 @@ void chasePattern(uint8_t* target_strips, uint8_t num_target_strips, CRGB* palet
             if (strip_id >= 22)
                 continue; // Invalid strip ID
 
-            uint8_t pin_index = strip_map[strip_id];
-            uint16_t strip_start_offset = strip_offsets[strip_id]; // Use pre-calculated offset
-
-            uint16_t strip_length = strip_lengths[strip_id];
+            CRGBSet strip_set = getStripSet(strip_id);
+            uint16_t strip_length = getStripLength(strip_id);
 
             // Apply chase pattern with blending across the strip
             for (uint16_t led = 0; led < strip_length; led++) {
@@ -143,10 +135,7 @@ void chasePattern(uint8_t* target_strips, uint8_t num_target_strips, CRGB* palet
                     // Blend between current and next color
                     CRGB blended_color = current_color.lerp8(next_color, blend_amount);
 
-                    // Get the directional LED index (supports forward/reverse)
-                    uint16_t directional_led = getDirectionalLedIndex(strip_id, led);
-
-                    pin_configs[pin_index].led_array[strip_start_offset + directional_led] = blended_color;
+                    getStripLED(strip_id, led) = blended_color;
                 }
 
                 global_led_position++;

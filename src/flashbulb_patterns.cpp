@@ -44,23 +44,23 @@ void triggerFlashBulb(uint8_t pattern_index)
         if (strip_id >= 22)
             continue;
 
-        // Save current colors
-        for (uint16_t led = 0; led < strips[strip_id].length && pattern.saved_color_count < (MAX_TARGET_STRIPS * 122); led++) {
-            pattern.saved_colors[pattern.saved_color_count] = getLED(strip_id, led);
+        // Save current colors using FastLED sets
+        CRGBSet strip_set = getStripSet(strip_id);
+        uint16_t strip_length = getStripLength(strip_id);
+        for (uint16_t led = 0; led < strip_length && pattern.saved_color_count < (MAX_TARGET_STRIPS * 122); led++) {
+            pattern.saved_colors[pattern.saved_color_count] = getStripLED(strip_id, led);
             pattern.saved_color_count++;
         }
     }
 
-    // Set all target LEDs to white immediately
+    // Set all target LEDs to white immediately using FastLED's fill_solid
     for (uint8_t i = 0; i < pattern.num_target_strips; i++) {
         uint8_t strip_id = pattern.target_strips[i];
         if (strip_id >= 22)
             continue;
 
-        // Set to full white
-        for (uint16_t led = 0; led < strips[strip_id].length; led++) {
-            getLED(strip_id, led) = CRGB::White;
-        }
+        CRGBSet strip_set = getStripSet(strip_id);
+        strip_set.fill_solid(CRGB::White);
     }
 
     // Start the flash sequence
@@ -88,16 +88,14 @@ void runFlashBulbPattern(FlashBulbPattern* pattern)
     switch (pattern->state) {
     case FLASHBULB_FLASH:
         if (elapsed < 100) { // Hold white flash for 100ms
-            // Keep LEDs white during flash period
+            // Keep LEDs white during flash period using FastLED's fill_solid
             for (uint8_t i = 0; i < pattern->num_target_strips; i++) {
                 uint8_t strip_id = pattern->target_strips[i];
                 if (strip_id >= 22)
                     continue;
 
-                // Ensure LEDs stay white during flash
-                for (uint16_t led = 0; led < strips[strip_id].length; led++) {
-                    getLED(strip_id, led) = CRGB::White;
-                }
+                CRGBSet strip_set = getStripSet(strip_id);
+                strip_set.fill_solid(CRGB::White);
             }
         } else {
             // Flash period complete, start fade to black
@@ -111,18 +109,17 @@ void runFlashBulbPattern(FlashBulbPattern* pattern)
         if (elapsed < 5000) { // 5 second fade to black
             uint8_t fade_amount = (elapsed * 255) / 5000;
 
-            // Apply fade to all target strips
+            // Apply fade to all target strips using FastLED's lerp functionality
             for (uint8_t i = 0; i < pattern->num_target_strips; i++) {
                 uint8_t strip_id = pattern->target_strips[i];
                 if (strip_id >= 22)
                     continue;
 
-                // Fade from white to black
-                for (uint16_t led = 0; led < strips[strip_id].length; led++) {
-                    CRGB white = CRGB::White;
-                    CRGB black = CRGB::Black;
-                    getLED(strip_id, led) = white.lerp8(black, fade_amount);
-                }
+                CRGBSet strip_set = getStripSet(strip_id);
+                
+                // Use FastLED's built-in fade function for smoother performance
+                strip_set.fill_solid(CRGB::White);
+                strip_set.fadeToBlackBy(fade_amount);
             }
 
             // Debug output every second
@@ -144,10 +141,8 @@ void runFlashBulbPattern(FlashBulbPattern* pattern)
                 if (strip_id >= 22)
                     continue;
 
-                // Ensure black at transition start
-                for (uint16_t led = 0; led < strips[strip_id].length; led++) {
-                    getLED(strip_id, led) = CRGB::Black;
-                }
+                CRGBSet strip_set = getStripSet(strip_id);
+                strip_set.fill_solid(CRGB::Black);
             }
 
             Serial.println("FlashBulb: Starting transition back to chase pattern");
@@ -165,14 +160,17 @@ void runFlashBulbPattern(FlashBulbPattern* pattern)
                 if (strip_id >= 22)
                     continue;
 
-                // Blend from black to the current chase pattern colors
-                for (uint16_t led = 0; led < strips[strip_id].length; led++) {
+                CRGBSet strip_set = getStripSet(strip_id);
+                
+                // Blend from black to the current chase pattern colors using FastLED
+                uint16_t strip_length = getStripLength(strip_id);
+                for (uint16_t led = 0; led < strip_length; led++) {
                     // Get the current color that the chase pattern set
-                    CRGB current_chase_color = getLED(strip_id, led);
-                    CRGB black = CRGB::Black;
-
+                    CRGB current_chase_color = getStripLED(strip_id, led);
+                    
                     // Blend from black to the current chase pattern color based on transition progress
-                    getLED(strip_id, led) = black.lerp8(current_chase_color, transition_amount);
+                    CRGB black = CRGB::Black;
+                    getStripLED(strip_id, led) = black.lerp8(current_chase_color, transition_amount);
                 }
             }
 

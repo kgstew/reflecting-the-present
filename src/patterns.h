@@ -18,6 +18,7 @@ struct StripConfig {
     uint16_t length;             // Number of LEDs in this strip
     bool reverse_direction;      // true = forward, false = reverse
     CRGB* led_array_ptr;         // Direct pointer to pin's LED array
+    // CRGBSets will be created on-demand in getStripSet() function
 };
 
 #define MAX_QUEUE_SIZE 10
@@ -37,12 +38,13 @@ struct StripGroupConfig {
 
 enum FlashBulbState { FLASHBULB_INACTIVE, FLASHBULB_FLASH, FLASHBULB_FADE_TO_BLACK, FLASHBULB_TRANSITION_BACK };
 
-enum PatternType { PATTERN_CHASE, PATTERN_SOLID, PATTERN_SINGLE_CHASE };
+enum PatternType { PATTERN_CHASE, PATTERN_SOLID, PATTERN_SINGLE_CHASE, PATTERN_RAINBOW, PATTERN_BREATHING };
 
 struct ChasePattern {
     PatternType pattern_type;
     CRGB palette[MAX_PALETTE_SIZE];
     uint8_t palette_size;
+    CRGBPalette16 fastled_palette;    // FastLED palette for optimized operations
     uint8_t target_strips[MAX_TARGET_STRIPS];
     uint8_t num_target_strips;
     uint8_t speed; // 1-100 scale (1=slowest, 100=fastest)
@@ -78,26 +80,31 @@ struct FlashBulbManager {
 
 // External references to global variables from main.cpp
 extern unsigned long current_time;
-extern uint16_t strip_lengths[];
-extern uint8_t strip_map[];
-extern uint16_t strip_offsets[];
-extern bool strip_directions[];
 extern PinConfig pin_configs[];
 extern StripConfig strips[];
+extern CRGB pin1_leds[];
+extern CRGB pin2_leds[];
+extern CRGB pin3_leds[];
+extern CRGB pin4_leds[];
+extern CRGB pin5_leds[];
+extern CRGB pin6_leds[];
 
 // External references to pattern managers
 extern PatternQueue pattern_queue;
 extern FlashBulbManager flashbulb_manager;
 
-// Performance optimization
-void calculateStripOffsets();
-
-// Strip direction helper
-uint16_t getDirectionalLedIndex(uint8_t strip_id, uint16_t led_index);
 
 // New strip configuration functions
 void initializeStripConfigs();
+void configureStripDirections();
+void testStripAddressing();
 CRGB& getLED(uint8_t strip_id, uint16_t led_index);
+CRGBSet getStripSet(uint8_t strip_id);
+uint16_t getStripLength(uint8_t strip_id);
+CRGB& getStripLED(uint8_t strip_id, uint16_t led_index);
+
+// FastLED optimization functions
+void updatePatternPalette(ChasePattern* pattern);
 
 // Universal speed conversion (1=slowest, 100=fastest)
 unsigned long convertSpeedToDelay(uint8_t speed);
@@ -126,6 +133,10 @@ void runSolidPattern(ChasePattern* pattern);
 
 // Single chase pattern functions
 void runSingleChasePattern(ChasePattern* pattern);
+
+// FastLED optimized pattern functions
+void runRainbowPattern(ChasePattern* pattern);
+void runBreathingPattern(ChasePattern* pattern);
 
 // FlashBulb pattern functions
 void initFlashBulbManager();
