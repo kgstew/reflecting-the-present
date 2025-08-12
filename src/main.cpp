@@ -35,12 +35,12 @@ PinConfig pin_configs[NUM_PINS]
 // Configure which strips should be reversed (can be modified as needed)
 // Example configuration - modify these values to change strip directions
 bool strip_reverse_config[22] = {
-    false, true, false,      // Pin 1: strip 1 reversed
-    false, false, false, false,  // Pin 2: all forward
-    false, false, false, false,  // Pin 3: all forward  
-    false, true, false,      // Pin 4: strip 12 reversed
-    false, false, false, false,  // Pin 5: all forward
-    false, false, false, false   // Pin 6: all forward
+    false, false, false, // Pin 1: strip 1 reversed
+    false, false, false, false, // Pin 2: all forward
+    false, false, false, false, // Pin 3: all forward
+    false, false, false, // Pin 4: strip 12 reversed
+    false, false, false, false, // Pin 5: all forward
+    false, false, false, false // Pin 6: all forward
 };
 
 // New unified strip configuration (CRGBSets will be initialized in initializeStripConfigs())
@@ -224,10 +224,10 @@ void setup()
 
     Serial.println("LED configuration:");
     uint16_t total_leds = 0;
-    
+
     for (int pin = 0; pin < NUM_PINS; pin++) {
-        Serial.printf("Pin %d (%d): %d LEDs (%d strips)\n", 
-                     pin, pin_configs[pin].pin, pin_configs[pin].total_leds, pin_configs[pin].num_strips);
+        Serial.printf("Pin %d (%d): %d LEDs (%d strips)\n", pin, pin_configs[pin].pin, pin_configs[pin].total_leds,
+            pin_configs[pin].num_strips);
         total_leds += pin_configs[pin].total_leds;
     }
 
