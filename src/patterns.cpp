@@ -562,7 +562,7 @@ void setupPatternProgram()
     addPatternToQueue(PATTERN_BREATHING, rainbow_palette, exterior_rings, 30,
         10); // Breathing effect on exterior rings - slow breathing - starts after 30 seconds
     addPatternToQueue(PATTERN_SOLID, sunset_palette, exterior_rings, 1,
-        30); // Solid sunset on exterior rings - speed irrelevant - starts after 10 seconds
+        60); // Solid sunset on exterior rings - speed irrelevant - starts after 10 seconds
     // addPatternToQueue(PATTERN_SINGLE_CHASE, cool_palette, inside, 100,
     //     30); // White single chase on inside strips - MAX SPEED - starts after 14 seconds
     // addPatternToQueue(PATTERN_SOLID, warm_palette, outside, 1,

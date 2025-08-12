@@ -5,13 +5,25 @@ void runBreathingPattern(ChasePattern* pattern)
     pattern->last_update = current_time;
 
     // Use FastLED's beatsin8 for smooth breathing effect
-    uint8_t breath = beatsin8(pattern->speed / 8, 102, 255); // Breathe between 70%-100% brightness (30% fade to black)
+    uint8_t breath = beatsin8(pattern->speed / 4, 142, 255); // Breathe between 70%-100% brightness (30% fade to black)
 
-    // Cycle through palette colors at 1/4 the speed of breathing
+    // Continuously interpolate through palette colors at 1/4 the speed of breathing
     CRGB base_color = CRGB::White;
     if (pattern->palette_size > 0) {
-        uint8_t color_index = beatsin8(pattern->speed / 32, 0, pattern->palette_size - 1);
-        base_color = pattern->palette[color_index];
+        // Get continuous position in palette (0-255 range)
+        uint8_t palette_position = beatsin8(pattern->speed / 16, 0, 255);
+        // Scale to palette range for smooth interpolation
+        uint8_t scaled_position = map8(palette_position, 0, (pattern->palette_size - 1) * 255 / pattern->palette_size);
+
+        // Find adjacent colors in palette
+        uint8_t index1 = scaled_position / (256 / pattern->palette_size);
+        uint8_t index2 = (index1 + 1) % pattern->palette_size;
+
+        // Calculate interpolation amount
+        uint8_t blend_amount = (scaled_position % (256 / pattern->palette_size)) * pattern->palette_size;
+
+        // Interpolate between the two colors
+        base_color = blend(pattern->palette[index1], pattern->palette[index2], blend_amount);
     }
 
     // Apply breathing pattern to all target strips
