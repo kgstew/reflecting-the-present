@@ -370,10 +370,10 @@ void setupPatternProgram()
     // Add patterns to queue with different transition delays (in seconds) and speeds (1-100 scale)
     addPatternToQueue(PATTERN_CHASE, rainbow_palette, all_strips, 10,
         0); // Rainbow chase on all strips - medium-fast speed - starts immediately
-    addPatternToQueue(PATTERN_PINWHEEL, rainbow_palette, inside, 10,
+    addPatternToQueue(PATTERN_PINWHEEL, rainbow_palette, inside, 80,
         10); // FastLED rainbow on inside strips - medium speed - starts after 14 seconds
     addPatternToQueue(PATTERN_BREATHING, rainbow_palette, exterior_rings, 1,
-        20); // Breathing effect on exterior rings - slow breathing - starts after 30 seconds
+        40); // Breathing effect on exterior rings - slow breathing - starts after 30 seconds
     // addPatternToQueue(PATTERN_SOLID, sunset_palette, exterior_rings, 1,
     //     60); // Solid sunset on exterior rings - speed irrelevant - starts after 10 seconds
     // addPatternToQueue(PATTERN_SINGLE_CHASE, cool_palette, inside, 100,
