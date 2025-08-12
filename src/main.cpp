@@ -40,7 +40,7 @@ uint16_t strip_offsets[22];
 
 // Strip direction configuration (true = forward, false = reverse)
 bool strip_directions[22] = {
-    true, false, true, true, true, true, true, true, true, true, true, // strips 0-10 forward
+    true, true, true, true, true, true, true, true, true, true, true, // strips 0-10 forward
     true, true, true, true, true, true, true, true, true, true, true // strips 11-21 forward
 };
 
@@ -67,9 +67,14 @@ struct SensorMapping {
 
 SensorMapping sensor_mappings[MAX_SENSORS] = {
     // Add your sensor mappings here manually
-    { 1, { 0, 1, 2 }, 3, true, 0 }, // Sensor 1 -> strips 0,1,2
-    { 2, { 5, 6 }, 2, true, 0 }, // Sensor 2 -> strips 5,6
-    { 3, { 10, 11, 12, 13 }, 4, true, 0 }, // Sensor 3 -> strips 10,11,12,13
+    { 1, { 0 }, 1, true, 0 }, // Sensor 1
+    { 2, { 1 }, 1, true, 0 }, // Sensor 2
+    { 3, { 2 }, 1, false, 0 }, // Sensor 3
+    { 4, { 3, 4, 5, 6 }, 4, false, 0 }, // Sensor 4
+    { 5, { 7, 8, 9, 10 }, 4, true, 0 }, // Sensor 5
+    { 6, { 11 }, 1, true, 0 }, // Sensor 6
+    { 7, { 12 }, 1, true, 0 }, // Sensor 7
+    { 8, { 13 }, 1, true, 0 }, // Sensor 8
     // Add more mappings as needed
 };
 
@@ -302,7 +307,7 @@ void loop()
     webSocket.loop();
 
     // Run demo FlashBulb trigger (optional - comment out when using real sensors)
-    demoFlashBulb();
+    // demoFlashBulb();
 
     // Run the queued pattern program
     runQueuedPattern();
