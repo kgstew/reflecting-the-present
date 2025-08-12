@@ -11,6 +11,15 @@ struct PinConfig {
     CRGB* led_array;
 };
 
+struct StripConfig {
+    uint8_t physical_pin;        // ESP32 pin number (13, 5, 19, etc.)
+    uint8_t pin_index;           // Which pin array (0-5)
+    uint16_t start_offset;       // LED offset within pin array
+    uint16_t length;             // Number of LEDs in this strip
+    bool reverse_direction;      // true = forward, false = reverse
+    CRGB* led_array_ptr;         // Direct pointer to pin's LED array
+};
+
 #define MAX_QUEUE_SIZE 10
 #define MAX_PALETTE_SIZE 16
 #define MAX_TARGET_STRIPS 22
@@ -74,6 +83,7 @@ extern uint8_t strip_map[];
 extern uint16_t strip_offsets[];
 extern bool strip_directions[];
 extern PinConfig pin_configs[];
+extern StripConfig strips[];
 
 // External references to pattern managers
 extern PatternQueue pattern_queue;
@@ -84,6 +94,10 @@ void calculateStripOffsets();
 
 // Strip direction helper
 uint16_t getDirectionalLedIndex(uint8_t strip_id, uint16_t led_index);
+
+// New strip configuration functions
+void initializeStripConfigs();
+CRGB& getLED(uint8_t strip_id, uint16_t led_index);
 
 // Universal speed conversion (1=slowest, 100=fastest)
 unsigned long convertSpeedToDelay(uint8_t speed);

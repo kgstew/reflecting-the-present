@@ -18,13 +18,8 @@ void runSolidPattern(ChasePattern* pattern)
             continue;
         }
 
-        uint8_t pin_index = strip_map[strip_id];
-        uint16_t strip_start_offset = strip_offsets[strip_id]; // Use pre-calculated offset
-
-        uint16_t strip_length = strip_lengths[strip_id];
-
         // Apply solid color across the strip
-        for (uint16_t led = 0; led < strip_length; led++) {
+        for (uint16_t led = 0; led < strips[strip_id].length; led++) {
             CRGB final_color = solid_color;
 
             // Apply transition blending if transitioning
@@ -35,7 +30,7 @@ void runSolidPattern(ChasePattern* pattern)
                     if (!pattern->is_active) {
                         // Transitioning in (fade in from existing color to solid color)
                         uint8_t transition_blend = (transition_elapsed * 255) / pattern->transition_duration;
-                        CRGB existing_color = pin_configs[pin_index].led_array[strip_start_offset + led];
+                        CRGB existing_color = getLED(strip_id, led);
                         final_color = existing_color.lerp8(final_color, transition_blend);
                     } else {
                         // Transitioning out (fade out to black)
@@ -45,7 +40,7 @@ void runSolidPattern(ChasePattern* pattern)
                 }
             }
 
-            pin_configs[pin_index].led_array[strip_start_offset + led] = final_color;
+            getLED(strip_id, led) = final_color;
         }
     }
 }

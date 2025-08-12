@@ -44,15 +44,9 @@ void triggerFlashBulb(uint8_t pattern_index)
         if (strip_id >= 22)
             continue;
 
-        uint8_t pin_index = strip_map[strip_id];
-        uint16_t strip_start_offset = strip_offsets[strip_id]; // Use pre-calculated offset
-
-        uint16_t strip_length = strip_lengths[strip_id];
-
         // Save current colors
-        for (uint16_t led = 0; led < strip_length && pattern.saved_color_count < (MAX_TARGET_STRIPS * 122); led++) {
-            pattern.saved_colors[pattern.saved_color_count]
-                = pin_configs[pin_index].led_array[strip_start_offset + led];
+        for (uint16_t led = 0; led < strips[strip_id].length && pattern.saved_color_count < (MAX_TARGET_STRIPS * 122); led++) {
+            pattern.saved_colors[pattern.saved_color_count] = getLED(strip_id, led);
             pattern.saved_color_count++;
         }
     }
@@ -63,14 +57,9 @@ void triggerFlashBulb(uint8_t pattern_index)
         if (strip_id >= 22)
             continue;
 
-        uint8_t pin_index = strip_map[strip_id];
-        uint16_t strip_start_offset = strip_offsets[strip_id]; // Use pre-calculated offset
-
-        uint16_t strip_length = strip_lengths[strip_id];
-
         // Set to full white
-        for (uint16_t led = 0; led < strip_length; led++) {
-            pin_configs[pin_index].led_array[strip_start_offset + led] = CRGB::White;
+        for (uint16_t led = 0; led < strips[strip_id].length; led++) {
+            getLED(strip_id, led) = CRGB::White;
         }
     }
 
@@ -105,21 +94,9 @@ void runFlashBulbPattern(FlashBulbPattern* pattern)
                 if (strip_id >= 22)
                     continue;
 
-                uint8_t pin_index = strip_map[strip_id];
-                uint16_t strip_start_offset = 0;
-
-                // Calculate the starting LED position for this strip within the pin's LED array
-                for (uint8_t s = 0; s < strip_id; s++) {
-                    if (strip_map[s] == pin_index) {
-                        strip_start_offset += strip_lengths[s];
-                    }
-                }
-
-                uint16_t strip_length = strip_lengths[strip_id];
-
                 // Ensure LEDs stay white during flash
-                for (uint16_t led = 0; led < strip_length; led++) {
-                    pin_configs[pin_index].led_array[strip_start_offset + led] = CRGB::White;
+                for (uint16_t led = 0; led < strips[strip_id].length; led++) {
+                    getLED(strip_id, led) = CRGB::White;
                 }
             }
         } else {
@@ -140,23 +117,11 @@ void runFlashBulbPattern(FlashBulbPattern* pattern)
                 if (strip_id >= 22)
                     continue;
 
-                uint8_t pin_index = strip_map[strip_id];
-                uint16_t strip_start_offset = 0;
-
-                // Calculate the starting LED position for this strip within the pin's LED array
-                for (uint8_t s = 0; s < strip_id; s++) {
-                    if (strip_map[s] == pin_index) {
-                        strip_start_offset += strip_lengths[s];
-                    }
-                }
-
-                uint16_t strip_length = strip_lengths[strip_id];
-
                 // Fade from white to black
-                for (uint16_t led = 0; led < strip_length; led++) {
+                for (uint16_t led = 0; led < strips[strip_id].length; led++) {
                     CRGB white = CRGB::White;
                     CRGB black = CRGB::Black;
-                    pin_configs[pin_index].led_array[strip_start_offset + led] = white.lerp8(black, fade_amount);
+                    getLED(strip_id, led) = white.lerp8(black, fade_amount);
                 }
             }
 
@@ -179,21 +144,9 @@ void runFlashBulbPattern(FlashBulbPattern* pattern)
                 if (strip_id >= 22)
                     continue;
 
-                uint8_t pin_index = strip_map[strip_id];
-                uint16_t strip_start_offset = 0;
-
-                // Calculate the starting LED position for this strip within the pin's LED array
-                for (uint8_t s = 0; s < strip_id; s++) {
-                    if (strip_map[s] == pin_index) {
-                        strip_start_offset += strip_lengths[s];
-                    }
-                }
-
-                uint16_t strip_length = strip_lengths[strip_id];
-
                 // Ensure black at transition start
-                for (uint16_t led = 0; led < strip_length; led++) {
-                    pin_configs[pin_index].led_array[strip_start_offset + led] = CRGB::Black;
+                for (uint16_t led = 0; led < strips[strip_id].length; led++) {
+                    getLED(strip_id, led) = CRGB::Black;
                 }
             }
 
@@ -212,28 +165,14 @@ void runFlashBulbPattern(FlashBulbPattern* pattern)
                 if (strip_id >= 22)
                     continue;
 
-                uint8_t pin_index = strip_map[strip_id];
-                uint16_t strip_start_offset = 0;
-
-                // Calculate the starting LED position for this strip within the pin's LED array
-                for (uint8_t s = 0; s < strip_id; s++) {
-                    if (strip_map[s] == pin_index) {
-                        strip_start_offset += strip_lengths[s];
-                    }
-                }
-
-                uint16_t strip_length = strip_lengths[strip_id];
-
                 // Blend from black to the current chase pattern colors
-                for (uint16_t led = 0; led < strip_length; led++) {
-                    uint16_t directional_led = getDirectionalLedIndex(strip_id, led);
+                for (uint16_t led = 0; led < strips[strip_id].length; led++) {
                     // Get the current color that the chase pattern set
-                    CRGB current_chase_color = pin_configs[pin_index].led_array[strip_start_offset + directional_led];
+                    CRGB current_chase_color = getLED(strip_id, led);
                     CRGB black = CRGB::Black;
 
                     // Blend from black to the current chase pattern color based on transition progress
-                    pin_configs[pin_index].led_array[strip_start_offset + directional_led]
-                        = black.lerp8(current_chase_color, transition_amount);
+                    getLED(strip_id, led) = black.lerp8(current_chase_color, transition_amount);
                 }
             }
 

@@ -25,18 +25,15 @@ void runSingleChasePattern(ChasePattern* pattern)
                 continue;
             }
 
-            uint8_t pin_index = strip_map[strip_id];
-            uint16_t strip_start_offset = strip_offsets[strip_id]; // Use pre-calculated offset
-
             // Set entire strip to black
-            for (uint16_t led = 0; led < strip_lengths[strip_id]; led++) {
+            for (uint16_t led = 0; led < strips[strip_id].length; led++) {
                 CRGB final_color = CRGB::Black;
 
                 // Only apply white LEDs to the currently active strip
                 if (i == current_strip_index && position_in_strip < strip_length) {
                     // Check if this LED is within the 10-LED chase window
                     if (led >= position_in_strip && led < position_in_strip + SINGLE_CHASE_LENGTH
-                        && led < strip_lengths[strip_id]) {
+                        && led < strips[strip_id].length) {
                         final_color = CRGB::White;
                     }
                 }
@@ -49,9 +46,7 @@ void runSingleChasePattern(ChasePattern* pattern)
                         if (!pattern->is_active) {
                             // Transitioning in (fade in from existing color to chase pattern)
                             uint8_t transition_blend = (transition_elapsed * 255) / pattern->transition_duration;
-                            uint16_t directional_led = getDirectionalLedIndex(strip_id, led);
-                            CRGB existing_color
-                                = pin_configs[pin_index].led_array[strip_start_offset + directional_led];
+                            CRGB existing_color = getLED(strip_id, led);
                             final_color = existing_color.lerp8(final_color, transition_blend);
                         } else {
                             // Transitioning out (fade out to black)
@@ -61,10 +56,7 @@ void runSingleChasePattern(ChasePattern* pattern)
                     }
                 }
 
-                // Get the directional LED index (supports forward/reverse)
-                uint16_t directional_led = getDirectionalLedIndex(strip_id, led);
-
-                pin_configs[pin_index].led_array[strip_start_offset + directional_led] = final_color;
+                getLED(strip_id, led) = final_color;
             }
         }
 

@@ -35,14 +35,11 @@ void runChasePatternLogic(ChasePattern* pattern)
             // Skip strips that are currently active in FlashBulb patterns
             if (isStripActiveInFlashBulb(strip_id)) {
                 // Still need to advance global_led_position for proper chase continuity
-                global_led_position += strip_lengths[strip_id];
+                global_led_position += strips[strip_id].length;
                 continue;
             }
 
-            uint8_t pin_index = strip_map[strip_id];
-            uint16_t strip_start_offset = strip_offsets[strip_id]; // Use pre-calculated offset
-
-            uint16_t strip_length = strip_lengths[strip_id];
+            uint16_t strip_length = strips[strip_id].length;
 
             // Apply chase pattern with blending across the strip
             for (uint16_t led = 0; led < strip_length; led++) {
@@ -50,7 +47,6 @@ void runChasePatternLogic(ChasePattern* pattern)
                     = (global_led_position + pattern->chase_position) % (pattern->palette_size * 10);
                 uint8_t color_index = pattern_position / 10;
                 uint8_t blend_amount = (pattern_position % 10) * 25; // 0-250 blend amount
-                uint16_t directional_led = getDirectionalLedIndex(strip_id, led);
 
                 if (color_index < pattern->palette_size) {
                     CRGB current_color = pattern->palette[color_index];
@@ -94,15 +90,14 @@ void runChasePatternLogic(ChasePattern* pattern)
                                     // Transitioning in (fade in)
                                     uint8_t transition_blend
                                         = (transition_elapsed * 255) / pattern->transition_duration;
-                                    CRGB existing_color
-                                        = pin_configs[pin_index].led_array[strip_start_offset + directional_led];
+                                    CRGB existing_color = getLED(strip_id, led);
                                     blended_color = existing_color.lerp8(blended_color, transition_blend);
                                 }
                             }
                         }
                     }
 
-                    pin_configs[pin_index].led_array[strip_start_offset + directional_led] = blended_color;
+                    getLED(strip_id, led) = blended_color;
                 }
 
                 global_led_position++;

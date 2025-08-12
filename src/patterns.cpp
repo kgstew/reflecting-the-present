@@ -32,6 +32,53 @@ uint16_t getDirectionalLedIndex(uint8_t strip_id, uint16_t led_index)
     }
 }
 
+CRGB& getLED(uint8_t strip_id, uint16_t led_index)
+{
+    // Direct LED access using new unified configuration
+    const StripConfig& strip = strips[strip_id];
+    
+    // Apply direction logic
+    uint16_t actual_index = strip.reverse_direction ? 
+        (strip.length - 1 - led_index) : led_index;
+    
+    // Return reference to the LED in the pin's array
+    return strip.led_array_ptr[strip.start_offset + actual_index];
+}
+
+void initializeStripConfigs()
+{
+    // Validation and setup for the new strip configuration system
+    Serial.println("Initializing unified strip configuration...");
+    
+    // Verify configuration consistency
+    for (uint8_t i = 0; i < 22; i++) {
+        const StripConfig& strip = strips[i];
+        
+        // Verify pin index is valid
+        if (strip.pin_index > 5) {
+            Serial.printf("ERROR: Strip %d has invalid pin_index %d\n", i, strip.pin_index);
+            continue;
+        }
+        
+        // Verify the pin matches PinConfig
+        if (strip.physical_pin != pin_configs[strip.pin_index].pin) {
+            Serial.printf("WARNING: Strip %d pin mismatch - strip:%d vs pinconfig:%d\n", 
+                         i, strip.physical_pin, pin_configs[strip.pin_index].pin);
+        }
+        
+        // Verify LED array pointer matches
+        if (strip.led_array_ptr != pin_configs[strip.pin_index].led_array) {
+            Serial.printf("WARNING: Strip %d LED array pointer mismatch\n", i);
+        }
+        
+        Serial.printf("Strip %d: Pin %d, Offset %d, Length %d, Reverse: %s\n", 
+                     i, strip.physical_pin, strip.start_offset, strip.length,
+                     strip.reverse_direction ? "true" : "false");
+    }
+    
+    Serial.println("Strip configuration initialized successfully");
+}
+
 unsigned long convertSpeedToDelay(uint8_t speed)
 {
     // Clamp speed to valid range
