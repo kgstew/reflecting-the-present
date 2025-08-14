@@ -35,12 +35,12 @@ PinConfig pin_configs[NUM_PINS]
 // Configure which strips should be reversed (can be modified as needed)
 // Example configuration - modify these values to change strip directions
 bool strip_reverse_config[22] = {
-    false, false, false, // Pin 1: strip 1 reversed
-    false, false, false, false, // Pin 2: all forward
-    false, false, false, false, // Pin 3: all forward
-    false, false, false, // Pin 4: strip 12 reversed
-    false, false, false, false, // Pin 5: all forward
-    false, false, false, false // Pin 6: all forward
+    false, false, false, // Pin 1:
+    false, false, false, false, // Pin 2:
+    false, false, false, false, // Pin 3:
+    false, false, false, // Pin 4:
+    false, false, false, false, // Pin 5:
+    false, false, false, false // Pin 6:
 };
 
 // New unified strip configuration (CRGBSets will be initialized in initializeStripConfigs())
@@ -508,7 +508,7 @@ void loop()
     webSocket.loop();
 
     // Run demo FlashBulb trigger (optional - comment out when using real sensors)
-    // demoFlashBulb();
+    demoFlashBulb();
 
     // Run the queued pattern program
     runQueuedPattern();

@@ -368,12 +368,21 @@ void setupPatternProgram()
     static StripGroupConfig exterior_rings = { { 0, 1, 2, 11, 12, 13 }, 6 };
 
     // Add patterns to queue with different transition delays (in seconds) and speeds (1-100 scale)
+    const uint8_t start_time = 0;
     addPatternToQueue(PATTERN_CHASE, rainbow_palette, all_strips, 10,
-        0); // Rainbow chase on all strips - medium-fast speed - starts immediately
+        start_time); // Rainbow chase on all strips - medium-fast speed - starts immediately
+
+    const uint8_t pattern_two_delay = start_time + 10;
     addPatternToQueue(PATTERN_RAINBOW_HORIZONTAL, rainbow_palette, inside, 100,
-        20); // FastLED rainbow on inside strips - medium speed - starts after 14 seconds
-    addPatternToQueue(PATTERN_BREATHING, rainbow_palette, exterior_rings, 1,
-        40); // Breathing effect on exterior rings - slow breathing - starts after 30 seconds
+        pattern_two_delay); // FastLED rainbow on inside strips - medium speed - starts after 14 seconds
+
+    const uint8_t pattern_three_delay = pattern_two_delay + 10;
+    addPatternToQueue(PATTERN_BREATHING, cool_palette, exterior_rings, 1,
+        pattern_three_delay); // Breathing effect on exterior rings - slow breathing - starts after 30 seconds
+    const uint8_t pattern_four_delay = pattern_two_delay + 10;
+    addPatternToQueue(PATTERN_RAINBOW, rainbow_palette, all_strips, 1,
+        pattern_four_delay); // Breathing effect on exterior rings - slow breathing - starts after 30 seconds
+
     // addPatternToQueue(PATTERN_SOLID, sunset_palette, exterior_rings, 1,
     //     60); // Solid sunset on exterior rings - speed irrelevant - starts after 10 seconds
     // addPatternToQueue(PATTERN_SINGLE_CHASE, cool_palette, inside, 100,
