@@ -46,7 +46,8 @@ enum PatternType {
     PATTERN_RAINBOW,
     PATTERN_BREATHING,
     PATTERN_PINWHEEL,
-    PATTERN_RAINBOW_HORIZONTAL
+    PATTERN_RAINBOW_HORIZONTAL,
+    PATTERN_WARP
 };
 
 // Pattern-specific parameter configurations
@@ -81,6 +82,11 @@ struct PatternParams {
             float width_multiplier;   // 0.5-3.0, chase width multiplier
             bool reverse_direction;   // reverse chase direction
         } single_chase;
+        
+        struct {
+            uint16_t acceleration_delay; // seconds to reach full speed
+            bool fade_previous;          // fade out previous strip vs instant off
+        } warp;
         
         // Solid patterns don't need additional parameters
         struct {
@@ -190,6 +196,9 @@ void runRainbowPattern(ChasePattern* pattern);
 void runRainbowHorizontalPattern(ChasePattern* pattern);
 void runBreathingPattern(ChasePattern* pattern);
 void runPinwheelPattern(ChasePattern* pattern);
+
+// Warp pattern functions
+void runWarpPattern(ChasePattern* pattern);
 
 // FlashBulb pattern functions
 void initFlashBulbManager();

@@ -420,29 +420,36 @@ void setupPatternProgram()
     chaseParams.chase.color_shift = true;
     addPatternToQueue(PATTERN_CHASE, rainbow_palette, all_strips, 15, start_time, 1000, chaseParams);
 
-    // Pattern 2: Custom breathing with fine-tuned parameters
+    // Pattern 2: Warp effect with acceleration
     const uint8_t pattern_two_delay = start_time + 10;
+    PatternParams warpParams = {};
+    warpParams.warp.acceleration_delay = 5;             // 5 seconds to reach full speed
+    warpParams.warp.fade_previous = true;               // Fade out previous strip
+    addPatternToQueue(PATTERN_WARP, sunset_palette, outside, 20, pattern_two_delay, 1000, warpParams);
+
+    // Pattern 3: Custom breathing with fine-tuned parameters
+    const uint8_t pattern_three_delay = pattern_two_delay + 10;
     PatternParams breathingParams = {};
     breathingParams.breathing.min_brightness = 0.15f;  // 15% minimum brightness
     breathingParams.breathing.max_brightness = 0.95f;  // 95% maximum brightness
     breathingParams.breathing.color_cycle_speed = 0.1f; // Very slow color cycling
-    addPatternToQueue(PATTERN_BREATHING, cool_palette, inside, 5, pattern_two_delay, 1000, breathingParams);
+    addPatternToQueue(PATTERN_BREATHING, cool_palette, inside, 5, pattern_three_delay, 1000, breathingParams);
 
-    // Pattern 3: Enhanced pinwheel with custom rotation
-    const uint8_t pattern_three_delay = pattern_two_delay + 10;
+    // Pattern 4: Enhanced pinwheel with custom rotation
+    const uint8_t pattern_four_delay = pattern_three_delay + 10;
     PatternParams pinwheelParams = {};
     pinwheelParams.pinwheel.rotation_speed = 2.5f;      // 2.5x faster rotation
     pinwheelParams.pinwheel.color_cycles = 5.0f;        // 5 color cycles
     pinwheelParams.pinwheel.radial_fade = true;         // Enable radial fade
     pinwheelParams.pinwheel.center_brightness = 0.8f;   // 80% center brightness
-    addPatternToQueue(PATTERN_PINWHEEL, sunset_palette, exterior_rings, 80, pattern_three_delay, 1000, pinwheelParams);
+    addPatternToQueue(PATTERN_PINWHEEL, sunset_palette, exterior_rings, 80, pattern_four_delay, 1000, pinwheelParams);
 
-    // Pattern 4: Fast rainbow with custom cycle speed
-    const uint8_t pattern_four_delay = pattern_three_delay + 10;
+    // Pattern 5: Fast rainbow with custom cycle speed
+    const uint8_t pattern_five_delay = pattern_four_delay + 10;
     PatternParams rainbowParams = {};
     rainbowParams.rainbow.cycle_speed = 2.0f;           // 2x faster cycling
     rainbowParams.rainbow.vertical_mode = true;         // Vertical rainbow mode
-    addPatternToQueue(PATTERN_RAINBOW, rainbow_palette, all_strips, 50, pattern_four_delay, 1000, rainbowParams);
+    addPatternToQueue(PATTERN_RAINBOW, rainbow_palette, all_strips, 50, pattern_five_delay, 1000, rainbowParams);
 
     // addPatternToQueue(PATTERN_SOLID, sunset_palette, exterior_rings, 1,
     //     60); // Solid sunset on exterior rings - speed irrelevant - starts after 10 seconds
@@ -478,6 +485,9 @@ void runPattern(ChasePattern* pattern)
         break;
     case PATTERN_PINWHEEL:
         runPinwheelPattern(pattern);
+        break;
+    case PATTERN_WARP:
+        runWarpPattern(pattern);
         break;
     case PATTERN_CHASE:
     default:
