@@ -6,9 +6,15 @@ void runPinwheelPattern(ChasePattern* pattern)
     if (current_time - pattern->last_update >= speed_delay) {
         pattern->last_update = current_time;
 
-        // Calculate rotation angle based on time and speed
-        // Higher speed = faster rotation, so divide by (101 - speed) to invert the relationship
-        uint8_t speed_divisor = (101 - pattern->speed) * 5;
+        // Use pattern parameters for pinwheel control
+        float rotation_speed = pattern->params.pinwheel.rotation_speed;
+        float color_cycles = pattern->params.pinwheel.color_cycles;
+        bool radial_fade = pattern->params.pinwheel.radial_fade;
+        float center_brightness = pattern->params.pinwheel.center_brightness;
+
+        // Calculate rotation angle based on time and speed with custom multiplier
+        uint8_t speed_divisor = (uint8_t)((101 - pattern->speed) * 5 / rotation_speed);
+        if (speed_divisor < 1) speed_divisor = 1;
         uint16_t rotation_angle = (current_time / speed_divisor) % 360;
         
         // For inside strips: 8 strips of 122 LEDs each, arranged side by side

@@ -25,6 +25,7 @@ struct StripConfig {
 #define MAX_PALETTE_SIZE 16
 #define MAX_TARGET_STRIPS 22
 #define MAX_FLASHBULB_PATTERNS 5
+#define MAX_CUSTOM_PARAMS 10
 
 struct PaletteConfig {
     CRGB colors[MAX_PALETTE_SIZE];
@@ -48,6 +49,46 @@ enum PatternType {
     PATTERN_RAINBOW_HORIZONTAL
 };
 
+// Pattern-specific parameter configurations
+struct PatternParams {
+    union {
+        struct {
+            float min_brightness;     // 0.0-1.0, minimum breathing brightness
+            float max_brightness;     // 0.0-1.0, maximum breathing brightness
+            float color_cycle_speed;  // 0.0-2.0, color cycling speed multiplier
+        } breathing;
+        
+        struct {
+            uint8_t chase_width;      // 1-20, number of LEDs in chase tail
+            float fade_rate;          // 0.1-1.0, tail fade rate
+            bool bounce_mode;         // true=bounce, false=continuous
+            bool color_shift;         // enable color shifting during chase
+        } chase;
+        
+        struct {
+            float rotation_speed;     // 0.1-5.0, rotation speed multiplier
+            float color_cycles;       // 1.0-8.0, number of color cycles
+            bool radial_fade;         // enable distance-based brightness fade
+            float center_brightness;  // 0.5-1.0, center brightness factor
+        } pinwheel;
+        
+        struct {
+            float cycle_speed;        // 0.1-5.0, rainbow cycling speed
+            bool vertical_mode;       // true=vertical, false=horizontal
+        } rainbow;
+        
+        struct {
+            float width_multiplier;   // 0.5-3.0, chase width multiplier
+            bool reverse_direction;   // reverse chase direction
+        } single_chase;
+        
+        // Solid patterns don't need additional parameters
+        struct {
+            uint8_t unused;           // placeholder
+        } solid;
+    };
+};
+
 struct ChasePattern {
     PatternType pattern_type;
     CRGB palette[MAX_PALETTE_SIZE];
@@ -63,6 +104,9 @@ struct ChasePattern {
     bool is_transitioning;
     unsigned long transition_start_time;
     uint16_t transition_duration;
+    
+    // Pattern-specific parameters
+    PatternParams params;
 };
 
 struct FlashBulbPattern {
@@ -114,10 +158,14 @@ void updatePatternPalette(ChasePattern* pattern);
 // Universal speed conversion (1=slowest, 100=fastest)
 unsigned long convertSpeedToDelay(uint8_t speed);
 
+
 // Pattern queue functions
 void addPatternToQueue(PatternType pattern_type, const PaletteConfig& palette_config,
     const StripGroupConfig& strip_config, uint8_t speed, unsigned long transition_delay,
     uint16_t transition_duration = 1000);
+void addPatternToQueue(PatternType pattern_type, const PaletteConfig& palette_config,
+    const StripGroupConfig& strip_config, uint8_t speed, unsigned long transition_delay,
+    uint16_t transition_duration, const PatternParams& params);
 void startPatternQueue();
 void stopPatternQueue();
 void clearPatternQueue();
@@ -149,6 +197,7 @@ void addFlashBulbPattern(uint8_t* target_strips, uint8_t num_target_strips);
 void triggerFlashBulb(uint8_t pattern_index);
 void updateFlashBulbPatterns();
 void runFlashBulbPattern(FlashBulbPattern* pattern);
+
 
 // Example program setup
 void setupPatternProgram();
